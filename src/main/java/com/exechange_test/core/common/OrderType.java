@@ -20,17 +20,12 @@ import lombok.Getter;
 @Getter
 public enum OrderType {
 
-    // Good till Cancel - equivalent to regular limit order
     GTC(0),
-
-    // Immediate or Cancel - equivalent to strict-risk market order
     IOC(1), // with price cap
     IOC_BUDGET(2), // with total amount cap
-
-    // Fill or Kill - execute immediately completely or not at all
     FOK(3), // with price cap
-    FOK_BUDGET(4); // total amount cap
-
+    FOK_BUDGET(4), // total amount cap
+    STOP_LOSS(5);
     private final byte code;
 
     OrderType(final int code) {
@@ -49,6 +44,8 @@ public enum OrderType {
                 return FOK;
             case 4:
                 return FOK_BUDGET;
+            case 5:
+                return STOP_LOSS;
             default:
                 throw new IllegalArgumentException("unknown OrderType:" + code);
         }
