@@ -33,6 +33,9 @@ public final class OrderCommand implements IOrder {
     @Getter
     public long orderId;
 
+    @Getter
+    public long triggerPrice;
+
     public int symbol;
 
     @Getter
