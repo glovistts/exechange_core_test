@@ -118,7 +118,6 @@ public class ExechangeTestApplication {
                 .uid(302L)
                 .orderId(5002L)
                 .price(15_250L)
-                .triggerPrice(15_500L)
                 .size(10L)
                 .action(OrderAction.ASK)
                 .orderType(OrderType.IOC)

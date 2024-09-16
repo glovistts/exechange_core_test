@@ -34,7 +34,7 @@ public final class OrderCommand implements IOrder {
     public long orderId;
 
     @Getter
-    public long triggerPrice;
+    public long stopPrice;
 
     public int symbol;
 
@@ -81,12 +81,12 @@ public final class OrderCommand implements IOrder {
     //public long matcherEventSequence;
     // ---- potential false sharing section ------
 
-    public static OrderCommand newOrder(OrderType orderType, long orderId, long uid, long price, long reserveBidPrice, long size, OrderAction action) {
-        OrderCommand cmd = new OrderCommand();
+    public static OrderCommand newOrder(OrderType orderType, long orderId, long uid, long price, long reserveBidPrice, long stopPrice, long size, OrderAction action) {        OrderCommand cmd = new OrderCommand();
         cmd.command = OrderCommandType.PLACE_ORDER;
         cmd.orderId = orderId;
         cmd.uid = uid;
         cmd.price = price;
+        cmd.stopPrice = stopPrice;
         cmd.reserveBidPrice = reserveBidPrice;
         cmd.size = size;
         cmd.action = action;
@@ -173,7 +173,7 @@ public final class OrderCommand implements IOrder {
         cmd2.symbol = this.symbol;
         cmd2.uid = this.uid;
         cmd2.timestamp = this.timestamp;
-
+        cmd2.stopPrice = this.stopPrice;
         cmd2.reserveBidPrice = this.reserveBidPrice;
         cmd2.price = this.price;
         cmd2.size = this.size;

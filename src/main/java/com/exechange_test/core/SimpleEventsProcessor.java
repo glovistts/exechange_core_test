@@ -148,7 +148,6 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
                                 cmd.price,
                                 cmd.size,
                                 cmd.orderId,
-                                cmd.triggerPrice,
                                 cmd.action,
                                 cmd.orderType,
                                 cmd.uid,

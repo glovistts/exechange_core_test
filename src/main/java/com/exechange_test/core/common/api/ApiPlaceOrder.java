@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public final class ApiPlaceOrder extends ApiCommand {
 
     public final long price;
-    public final long triggerPrice;
     public final long size;
     public final long orderId;
     public final OrderAction action;

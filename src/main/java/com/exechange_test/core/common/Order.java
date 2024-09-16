@@ -47,6 +47,8 @@ public final class Order implements WriteBytesMarshallable, IOrder {
     public long size;
 
     @Getter
+    public long stopPrice;
+    @Getter
     public long filled;
 
     // new orders - reserved price for fast moves of GTC bid orders in exchange mode
@@ -73,6 +75,7 @@ public final class Order implements WriteBytesMarshallable, IOrder {
         this.size = bytes.readLong(); // size
         this.filled = bytes.readLong(); // filled
         this.reserveBidPrice = bytes.readLong(); // price2
+        this.stopPrice = bytes.readLong(); // price2
         this.action = OrderAction.of(bytes.readByte());
         this.uid = bytes.readLong(); // uid
         this.timestamp = bytes.readLong(); // timestamp
@@ -86,6 +89,7 @@ public final class Order implements WriteBytesMarshallable, IOrder {
         bytes.writeLong(price);
         bytes.writeLong(size);
         bytes.writeLong(filled);
+        bytes.writeLong(stopPrice);
         bytes.writeLong(reserveBidPrice);
         bytes.writeByte(action.getCode());
         bytes.writeLong(uid);
@@ -103,7 +107,7 @@ public final class Order implements WriteBytesMarshallable, IOrder {
 
     @Override
     public int hashCode() {
-        return Objects.hash(orderId, action, price, size, reserveBidPrice, filled,
+        return Objects.hash(orderId, action, price, size, reserveBidPrice, stopPrice, filled,
                 //userCookie, timestamp
                 uid);
     }
@@ -125,6 +129,7 @@ public final class Order implements WriteBytesMarshallable, IOrder {
                 && action == other.action
                 && price == other.price
                 && size == other.size
+                && stopPrice == other.stopPrice
                 && reserveBidPrice == other.reserveBidPrice
                 && filled == other.filled
                 && uid == other.uid;
