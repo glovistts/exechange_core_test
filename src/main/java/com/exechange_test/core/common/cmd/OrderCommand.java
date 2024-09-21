@@ -17,6 +17,7 @@ package com.exechange_test.core.common.cmd;
 
 import com.exechange_test.core.common.*;
 import lombok.*;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.function.Consumer;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Component
 public final class OrderCommand implements IOrder {
 
     public OrderCommandType command;
@@ -81,7 +83,8 @@ public final class OrderCommand implements IOrder {
     //public long matcherEventSequence;
     // ---- potential false sharing section ------
 
-    public static OrderCommand newOrder(OrderType orderType, long orderId, long uid, long price, long reserveBidPrice, long stopPrice, long size, OrderAction action) {        OrderCommand cmd = new OrderCommand();
+    public static OrderCommand newOrder(OrderType orderType, long orderId, long uid, long price,long stopPrice, long reserveBidPrice, long size, OrderAction action) {
+        OrderCommand cmd = new OrderCommand();
         cmd.command = OrderCommandType.PLACE_ORDER;
         cmd.orderId = orderId;
         cmd.uid = uid;
