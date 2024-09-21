@@ -97,8 +97,6 @@ public final class OrdersBucketNaive implements Comparable<OrdersBucketNaive>, W
      */
     public MatcherResult match(long volumeToCollect, IOrder activeOrder, OrderBookEventsHelper helper) {
 
-//        log.debug("---- match: {}", volumeToCollect);
-
         final Iterator<Map.Entry<Long, Order>> iterator = entries.entrySet().iterator();
 
         long totalMatchingVolume = 0;
@@ -108,22 +106,17 @@ public final class OrdersBucketNaive implements Comparable<OrdersBucketNaive>, W
         MatcherTradeEvent eventsHead = null;
         MatcherTradeEvent eventsTail = null;
 
-        // iterate through all orders
         while (iterator.hasNext() && volumeToCollect > 0) {
             final Map.Entry<Long, Order> next = iterator.next();
             final Order order = next.getValue();
 
-            // calculate exact volume can fill for this order
-//            log.debug("volumeToCollect={} order: s{} f{}", volumeToCollect, order.size, order.filled);
             final long v = Math.min(volumeToCollect, order.size - order.filled);
             totalMatchingVolume += v;
-//            log.debug("totalMatchingVolume={} v={}", totalMatchingVolume, v);
 
             order.filled += v;
             volumeToCollect -= v;
             totalVolume -= v;
 
-            // remove from order book filled orders
             final boolean fullMatch = order.size == order.filled;
 
             final long bidderHoldPrice = order.action == OrderAction.ASK ? activeOrder.getReserveBidPrice() : order.reserveBidPrice;

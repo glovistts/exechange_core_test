@@ -113,10 +113,9 @@ public final class ExchangeApi {
 
         if (cmd instanceof ApiMoveOrder) {
             return submitCommandAsync(MOVE_ORDER_TRANSLATOR, (ApiMoveOrder) cmd);
-        } else if (cmd instanceof ApiPlaceOrder) {
+        }else if (cmd instanceof ApiPlaceOrder) {
             return submitCommandAsync(NEW_ORDER_TRANSLATOR, (ApiPlaceOrder) cmd);
-        }
-        else if (cmd instanceof ApiCancelOrder) {
+        }else if (cmd instanceof ApiCancelOrder) {
             return submitCommandAsync(CANCEL_ORDER_TRANSLATOR, (ApiCancelOrder) cmd);
         } else if (cmd instanceof ApiReduceOrder) {
             return submitCommandAsync(REDUCE_ORDER_TRANSLATOR, (ApiReduceOrder) cmd);

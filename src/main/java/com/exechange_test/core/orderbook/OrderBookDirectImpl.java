@@ -1,18 +1,4 @@
-/*
- * Copyright 2019 Maksim Zheravin
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 package com.exechange_test.core.orderbook;
 
 import exchange.core2.collections.art.LongAdaptiveRadixTreeMap;
@@ -42,19 +28,16 @@ import java.util.stream.StreamSupport;
 @Slf4j
 public final class OrderBookDirectImpl implements IOrderBook {
 
-    // buckets
+    private final Boolean EnableSL = true;
     private final LongAdaptiveRadixTreeMap<Bucket> askPriceBuckets;
     private final LongAdaptiveRadixTreeMap<Bucket> bidPriceBuckets;
 
-    // symbol specification
+    private final LongAdaptiveRadixTreeMap<Order> bidMapSL;
+    private final LongAdaptiveRadixTreeMap<Order> askMapSL;
     private final CoreSymbolSpecification symbolSpec;
 
-    // index: orderId -> order
     private final LongAdaptiveRadixTreeMap<DirectOrder> orderIdIndex;
-    //private final Long2ObjectHashMap<DirectOrder> orderIdIndex = new Long2ObjectHashMap<>();
-    //private final LongObjectHashMap<DirectOrder> orderIdIndex = new LongObjectHashMap<>();
 
-    // heads (nullable)
     private DirectOrder bestAskOrder = null;
     private DirectOrder bestBidOrder = null;
 
@@ -76,6 +59,8 @@ public final class OrderBookDirectImpl implements IOrderBook {
         this.bidPriceBuckets = new LongAdaptiveRadixTreeMap<>(objectsPool);
         this.eventsHelper = eventsHelper;
         this.orderIdIndex = new LongAdaptiveRadixTreeMap<>(objectsPool);
+        this.bidMapSL = new LongAdaptiveRadixTreeMap<>(objectsPool);
+        this.askMapSL = new LongAdaptiveRadixTreeMap<>(objectsPool);
         this.logDebug = loggingCfg.getLoggingLevels().contains(LoggingConfiguration.LoggingLevel.LOGGING_MATCHING_DEBUG);
     }
 
@@ -83,13 +68,14 @@ public final class OrderBookDirectImpl implements IOrderBook {
                                final ObjectsPool objectsPool,
                                final OrderBookEventsHelper eventsHelper,
                                final LoggingConfiguration loggingCfg) {
-
         this.symbolSpec = new CoreSymbolSpecification(bytes);
         this.objectsPool = objectsPool;
         this.askPriceBuckets = new LongAdaptiveRadixTreeMap<>(objectsPool);
         this.bidPriceBuckets = new LongAdaptiveRadixTreeMap<>(objectsPool);
         this.eventsHelper = eventsHelper;
         this.orderIdIndex = new LongAdaptiveRadixTreeMap<>(objectsPool);
+        this.bidMapSL = new LongAdaptiveRadixTreeMap<>(objectsPool);
+        this.askMapSL = new LongAdaptiveRadixTreeMap<>(objectsPool);
         this.logDebug = loggingCfg.getLoggingLevels().contains(LoggingConfiguration.LoggingLevel.LOGGING_MATCHING_DEBUG);
 
         final int size = bytes.readInt();
@@ -113,14 +99,42 @@ public final class OrderBookDirectImpl implements IOrderBook {
             case FOK_BUDGET:
                 newOrderMatchFokBudget(cmd);
                 break;
-            // TODO IOC_BUDGET and FOK support
+            case STOP_LOSS:
+                newOrderPlaceSL(cmd);
+                break;
             default:
                 log.warn("Unsupported order type: {}", cmd);
                 eventsHelper.attachRejectEvent(cmd, cmd.size);
         }
     }
 
+    private void newOrderPlaceSL(final OrderCommand cmd) {
+        if(!EnableSL) {
+            log.warn("Stop Loss orders disabled !");
+            return;
+        }
+        final OrderAction action = cmd.action;
+        final long price = cmd.price;
+        final long size = cmd.size;
+        long newOrderId = cmd.orderId;
+        final long stopPrice = cmd.stopPrice;
+        long filledSize = 0;
 
+        final Order orderRecord = new Order(
+                newOrderId,
+                price,
+                size,
+                filledSize,
+                cmd.reserveBidPrice,
+                stopPrice,
+                action,
+                cmd.uid,
+                cmd.timestamp);
+
+        final LongAdaptiveRadixTreeMap<Order> slMap = (action == OrderAction.ASK) ? askMapSL : bidMapSL;
+
+        slMap.put(newOrderId, orderRecord);
+    }
     private void newOrderPlaceGtc(final OrderCommand cmd) {
         final long size = cmd.size;
 
@@ -250,112 +264,99 @@ public final class OrderBookDirectImpl implements IOrderBook {
         DirectOrder priceBucketTail = makerOrder.parent.tail;
 
         final long takerReserveBidPrice = takerOrder.getReserveBidPrice();
-//        final long takerOrderTimestamp = takerOrder.getTimestamp();
-
-//        log.debug("MATCHING taker: {} remainingSize={}", takerOrder, remainingSize);
-
         MatcherTradeEvent eventsTail = null;
-
-        // iterate through all orders
         do {
-
-//            log.debug("  matching from maker order: {}", makerOrder);
-
-            // calculate exact volume can fill for this order
             final long tradeSize = Math.min(remainingSize, makerOrder.size - makerOrder.filled);
-//                log.debug("  tradeSize: {} MIN(remainingSize={}, makerOrder={})", tradeSize, remainingSize, makerOrder.size - makerOrder.filled);
-
             makerOrder.filled += tradeSize;
             makerOrder.parent.volume -= tradeSize;
             remainingSize -= tradeSize;
-
-            // remove from order book filled orders
             final boolean makerCompleted = makerOrder.size == makerOrder.filled;
             if (makerCompleted) {
                 makerOrder.parent.numOrders--;
             }
-
             final MatcherTradeEvent tradeEvent = eventsHelper.sendTradeEvent(makerOrder, makerCompleted, remainingSize == 0, tradeSize,
                     isBidAction ? takerReserveBidPrice : makerOrder.reserveBidPrice);
-
             if (eventsTail == null) {
                 triggerCmd.matcherEvent = tradeEvent;
             } else {
                 eventsTail.nextEvent = tradeEvent;
             }
             eventsTail = tradeEvent;
-
             if (!makerCompleted) {
-                // maker not completed -> no unmatched volume left, can exit matching loop
-//                    log.debug("  not completed, exit");
                 break;
             }
-
-            // if completed can remove maker order
             orderIdIndex.remove(makerOrder.orderId);
             objectsPool.put(ObjectsPool.DIRECT_ORDER, makerOrder);
-
-
             if (makerOrder == priceBucketTail) {
-                // reached current price tail -> remove bucket reference
                 final LongAdaptiveRadixTreeMap<Bucket> buckets = isBidAction ? askPriceBuckets : bidPriceBuckets;
                 buckets.remove(makerOrder.price);
                 objectsPool.put(ObjectsPool.DIRECT_BUCKET, makerOrder.parent);
-//                log.debug("  removed price bucket for {}", makerOrder.price);
-
-                // set next price tail (if there is next price)
                 if (makerOrder.prev != null) {
                     priceBucketTail = makerOrder.prev.parent.tail;
                 }
             }
-
-            // switch to next order
-            makerOrder = makerOrder.prev; // can be null
+            makerOrder = makerOrder.prev;
 
         } while (makerOrder != null
                 && remainingSize > 0
                 && (isBidAction ? makerOrder.price <= limitPrice : makerOrder.price >= limitPrice));
-
-        // break chain after last order
         if (makerOrder != null) {
             makerOrder.next = null;
         }
-
-//        log.debug("makerOrder = {}", makerOrder);
-//        log.debug("makerOrder.parent = {}", makerOrder != null ? makerOrder.parent : null);
-
-        // update best orders reference
         if (isBidAction) {
             bestAskOrder = makerOrder;
         } else {
             bestBidOrder = makerOrder;
         }
+        if(EnableSL) {
+            processStopLoss(OrderAction.ASK, makerOrder.price);
+            processStopLoss(OrderAction.BID, makerOrder.price);
+        }
+
 
         // return filled amount
         return takerOrder.getSize() - remainingSize;
     }
+    private void processStopLoss(OrderAction Action, Long price) {
+        final LongAdaptiveRadixTreeMap<Order> slMap = (Action == OrderAction.ASK) ? askMapSL : bidMapSL;
+        slMap.forEach((orderId, order) -> {
+            final Boolean oCondition = (Action == OrderAction.ASK) ? order.price <= price : order.price >= price;
+            if(oCondition) {
+                if (orderIdIndex.get(orderId) != null) {
+                    log.warn("duplicate order id: {}", order);
+                    return;
+                }
+                final long oPrice = order.price;
+                final DirectOrder orderRecord = objectsPool.get(ObjectsPool.DIRECT_ORDER, (Supplier<DirectOrder>) DirectOrder::new);
+                orderRecord.orderId = orderId;
+                orderRecord.price = oPrice;
+                orderRecord.size = order.size;
+                orderRecord.reserveBidPrice = order.reserveBidPrice;
+                orderRecord.action = order.action;
+                orderRecord.uid = order.uid;
+                orderRecord.timestamp = order.timestamp;
+                orderRecord.filled = order.filled;
+                orderIdIndex.put(orderId, orderRecord);
+                insertOrder(orderRecord, null);
+                slMap.remove(orderId);
+            }
+        }, Integer.MAX_VALUE);
+    }
 
     @Override
     public CommandResultCode cancelOrder(OrderCommand cmd) {
-
-        // TODO avoid double lookup ?
         final DirectOrder order = orderIdIndex.get(cmd.orderId);
         if (order == null || order.uid != cmd.uid) {
             return CommandResultCode.MATCHING_UNKNOWN_ORDER_ID;
         }
         orderIdIndex.remove(cmd.orderId);
         objectsPool.put(ObjectsPool.DIRECT_ORDER, order);
-
         final Bucket freeBucket = removeOrder(order);
         if (freeBucket != null) {
             objectsPool.put(ObjectsPool.DIRECT_BUCKET, freeBucket);
         }
-
-        // fill action fields (for events handling)
         cmd.action = order.getAction();
-
         cmd.matcherEvent = eventsHelper.sendReduceEvent(order, order.getSize() - order.getFilled(), true);
-
         return CommandResultCode.SUCCESS;
     }
 
@@ -393,8 +394,6 @@ public final class OrderBookDirectImpl implements IOrderBook {
         }
 
         cmd.matcherEvent = eventsHelper.sendReduceEvent(order, reduceBy, canRemove);
-
-        // fill action fields (for events handling)
         cmd.action = order.getAction();
 
         return CommandResultCode.SUCCESS;
@@ -403,24 +402,19 @@ public final class OrderBookDirectImpl implements IOrderBook {
     @Override
     public CommandResultCode moveOrder(OrderCommand cmd) {
 
-        // order lookup
         final DirectOrder orderToMove = orderIdIndex.get(cmd.orderId);
         if (orderToMove == null || orderToMove.uid != cmd.uid) {
             return CommandResultCode.MATCHING_UNKNOWN_ORDER_ID;
         }
 
-        // risk check for exchange bids
         if (symbolSpec.type == SymbolType.CURRENCY_EXCHANGE_PAIR && orderToMove.action == OrderAction.BID && cmd.price > orderToMove.reserveBidPrice) {
             return CommandResultCode.MATCHING_MOVE_FAILED_PRICE_OVER_RISK_LIMIT;
         }
 
-        // remove order
         final Bucket freeBucket = removeOrder(orderToMove);
 
-        // update price
         orderToMove.price = cmd.price;
 
-        // fill action fields (for events handling)
         cmd.action = orderToMove.getAction();
 
         // try match with new price as a taker order

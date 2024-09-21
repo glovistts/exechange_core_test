@@ -146,6 +146,7 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
             case PLACE_ORDER:
                 sendApiCommandResult(new ApiPlaceOrder(
                                 cmd.price,
+                                cmd.stopPrice,
                                 cmd.size,
                                 cmd.orderId,
                                 cmd.action,

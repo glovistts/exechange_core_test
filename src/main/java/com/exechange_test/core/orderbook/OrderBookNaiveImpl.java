@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 @Slf4j
 public final class OrderBookNaiveImpl implements IOrderBook {
 
+    private final Boolean EnableSL = true;
     private final Long roundVal = 50L;
     private final NavigableMap<Long, OrdersBucketNaive> askBuckets;
     private final NavigableMap<Long, OrdersBucketNaive> bidBuckets;
@@ -43,6 +44,8 @@ public final class OrderBookNaiveImpl implements IOrderBook {
     private final CoreSymbolSpecification symbolSpec;
 
     private final LongObjectHashMap<Order> idMap = new LongObjectHashMap<>();
+
+
     private final ConcurrentHashMap<Long, List<Order>> bidMapSL = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, List<Order>> askMapSL = new ConcurrentHashMap<>();
 
@@ -82,13 +85,9 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         this.bidBuckets = SerializationUtils.readLongMap(bytes, () -> new TreeMap<>(Collections.reverseOrder()), OrdersBucketNaive::new);
 
         this.eventsHelper = OrderBookEventsHelper.NON_POOLED_EVENTS_HELPER;
-        // reconstruct ordersId-> Order cache
-        // TODO check resulting performance
         askBuckets.values().forEach(bucket -> bucket.forEachOrder(order -> idMap.put(order.orderId, order)));
         bidBuckets.values().forEach(bucket -> bucket.forEachOrder(order -> idMap.put(order.orderId, order)));
-
         this.logDebug = loggingCfg.getLoggingLevels().contains(LoggingConfiguration.LoggingLevel.LOGGING_MATCHING_DEBUG);
-        //validateInternalState();
     }
 
     @Override
@@ -107,7 +106,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
             case STOP_LOSS:
                 newOrderPlaceSL(cmd);
                 break;
-            // TODO IOC_BUDGET and FOK support
             default:
                 log.warn("Unsupported order type: {}", cmd);
                 eventsHelper.attachRejectEvent(cmd, cmd.size);
