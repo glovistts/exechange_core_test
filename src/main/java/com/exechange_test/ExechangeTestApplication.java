@@ -15,18 +15,22 @@ import com.exechange_test.core.common.cmd.CommandResultCode;
 import com.exechange_test.core.common.cmd.OrderCommand;
 import com.exechange_test.core.common.config.ExchangeConfiguration;
 import com.exechange_test.core.orderbook.IOrderBook;
+import com.exechange_test.core.orderbook.OrderBookNaiveImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import static com.exechange_test.core.common.OrderAction.ASK;
 import static com.exechange_test.core.common.OrderType.IOC;
 
 @SpringBootApplication
-public class ExechangeTestApplication {
-
+public abstract class ExechangeTestApplication {
+    IOrderBook orderBook;
+    protected abstract IOrderBook createNewOrderBook();
 
     public static void main(String[] args) {
 
@@ -48,9 +52,13 @@ public class ExechangeTestApplication {
                 40_000L,
                 0L,
                 6L,
-                OrderAction.ASK
+                ASK
         );
-        //IOrderBook.processCommand(orderBook, OrderCommand.newOrder(IOC, 100000000001L, -2, 1, 0, 0L,bidSum, ASK));
+        L2MarketData snapshot = orderBook.getL2MarketDataSnapshot(Integer.MAX_VALUE);
+
+        long bidSum = Arrays.stream(snapshot.bidVolumes).sum();
+
+        IOrderBook.processCommand(orderBook, OrderCommand.newOrder(IOC, 100000000001L, -2, 1, 0, 0L,bidSum, ASK));
 
     }
 
