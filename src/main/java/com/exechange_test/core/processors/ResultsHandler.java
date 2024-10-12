@@ -25,5 +25,5 @@ public final class ResultsHandler implements EventHandler<OrderCommand> {
             resultsConsumer.accept(cmd, sequence);
         }
 
-    }
+     }
 }

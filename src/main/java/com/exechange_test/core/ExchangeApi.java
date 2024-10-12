@@ -427,6 +427,7 @@ public final class ExchangeApi {
     private static final EventTranslatorOneArg<OrderCommand, ApiPlaceOrder> NEW_ORDER_TRANSLATOR = (cmd, seq, api) -> {
         cmd.command = OrderCommandType.PLACE_ORDER;
         cmd.price = api.price;
+        cmd.stopPrice=api.stopPrice;
         cmd.reserveBidPrice = api.reservePrice;
         cmd.size = api.size;
         cmd.orderId = api.orderId;

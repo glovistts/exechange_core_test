@@ -19,6 +19,8 @@ public interface IOrder extends StateHash {
 
     long getPrice();
 
+    long getStopPrice();
+
     long getSize();
 
     long getFilled();

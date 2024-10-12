@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 @AllArgsConstructor
 @ToString
 @Component
-public final class OrderCommand implements IOrder {
+public class OrderCommand implements IOrder {
 
     public OrderCommandType command;
 
@@ -83,7 +83,7 @@ public final class OrderCommand implements IOrder {
     //public long matcherEventSequence;
     // ---- potential false sharing section ------
 
-    public static OrderCommand newOrder(OrderType orderType, long orderId, long uid, long price,long stopPrice, long reserveBidPrice, long size, OrderAction action) {
+    public OrderCommand newOrder(OrderType orderType, long orderId, long uid, long price,long stopPrice, long reserveBidPrice, long size, OrderAction action) {
         OrderCommand cmd = new OrderCommand();
         cmd.command = OrderCommandType.PLACE_ORDER;
         cmd.orderId = orderId;

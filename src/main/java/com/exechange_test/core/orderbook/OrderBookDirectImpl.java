@@ -803,6 +803,9 @@ public final class OrderBookDirectImpl implements IOrderBook {
         public long price;
 
         @Getter
+        public long stopPrice;
+
+        @Getter
         public long size;
 
         @Getter
