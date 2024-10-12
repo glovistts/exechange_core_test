@@ -176,7 +176,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
         long newOrderId = cmd.orderId;
         if (idMap.containsKey(newOrderId)) {
-            // duplicate order id - can match, but can not place
             eventsHelper.attachRejectEvent(cmd, cmd.size - filledSize);
             log.warn("duplicate order id: {}", cmd);
             return;
