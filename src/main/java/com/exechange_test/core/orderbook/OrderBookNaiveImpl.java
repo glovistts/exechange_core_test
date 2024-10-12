@@ -263,17 +263,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
                 .headMap(price, true);
     }
 
-    /**
-     * Match the order instantly to specified sorted buckets map
-     * Fully matching orders are removed from orderId index
-     * Should any trades occur - they sent to tradesConsumer
-     *
-     * @param activeOrder     - GTC or IOC order to match
-     * @param matchingBuckets - sorted buckets map
-     * @param filled          - current 'filled' value for the order
-     * @param triggerCmd      - triggered command (taker)
-     * @return new filled size
-     */
     private long tryMatchInstantly(
             final IOrder activeOrder,
             final SortedMap<Long, OrdersBucketNaive> matchingBuckets,
