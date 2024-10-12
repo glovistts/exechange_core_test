@@ -23,7 +23,6 @@ public class ITCoreExample {
     @Test
     public void sampleTest() throws Exception {
 
-        // simple async events handler
         SimpleEventsProcessor eventsProcessor = new SimpleEventsProcessor(new IEventsHandler() {
             @Override
             public void tradeEvent(TradeEvent tradeEvent) {
@@ -51,31 +50,24 @@ public class ITCoreExample {
             }
         });
 
-        // default exchange configuration
         ExchangeConfiguration conf = ExchangeConfiguration.defaultBuilder().build();
 
-        // build exchange core
         ExchangeCore exchangeCore = ExchangeCore.builder()
                 .resultsConsumer(eventsProcessor)
                 .exchangeConfiguration(conf)
                 .build();
 
-        // start up disruptor threads
         exchangeCore.startup();
 
-        // get exchange API for publishing commands
         ExchangeApi api = exchangeCore.getApi();
 
-        // currency code constants
         final int currencyCodeXbt = 11;
         final int currencyCodeLtc = 15;
 
-        // symbol constants
         final int symbolXbtLtc = 241;
 
         Future<CommandResultCode> future;
 
-        // create symbol specification and publish it
         CoreSymbolSpecification symbolSpecXbtLtc = CoreSymbolSpecification.builder()
                 .symbolId(symbolXbtLtc)         // symbol id
                 .type(SymbolType.CURRENCY_EXCHANGE_PAIR)
@@ -130,7 +122,7 @@ public class ITCoreExample {
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(301L)
                 .orderId(5001L)
-                .price(15_380L)
+                .price(15_170L)
                 .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
                 .size(12L) // order size is 35 lots
                 .action(OrderAction.BID)

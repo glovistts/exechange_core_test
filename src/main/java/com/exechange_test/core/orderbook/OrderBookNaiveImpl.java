@@ -150,7 +150,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
                 slMap.put(roundedStopPrice, orderList);
             } else {
-                //create new list of orders
                 final List<Order> newOrderList = new ArrayList<Order>();
                 newOrderList.add(orderRecord);
 
@@ -181,7 +180,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
             return;
         }
 
-        // normally placing regular GTC limit order
         final Order orderRecord = new Order(
                 newOrderId,
                 price,
