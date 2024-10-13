@@ -18,6 +18,7 @@ package com.exechange_test.core.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +50,6 @@ public final class MatcherTradeEvent {
     public long matchedOrderUid; // 0 for rejection
     public boolean matchedOrderCompleted; // false, except when matchedOrder is completely filled
 
-    // actual price of the deal (from maker order), 0 for rejection (price can be take from original order)
     public long price;
 
     // TRADE - trade size

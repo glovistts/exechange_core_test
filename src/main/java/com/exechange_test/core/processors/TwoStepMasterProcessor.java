@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public final class TwoStepMasterProcessor implements EventProcessor {
     private static final int IDLE = 0;
-    private static final int HALTED = IDLE + 1;
+    private static final int HALTED = IDLE +1;
     private static final int RUNNING = HALTED + 1;
 
     private static final int MASTER_SPIN_LIMIT = 5000;

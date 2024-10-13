@@ -11,14 +11,17 @@ import com.exechange_test.core.common.api.reports.TotalCurrencyBalanceReportQuer
 import com.exechange_test.core.common.api.reports.TotalCurrencyBalanceReportResult;
 import com.exechange_test.core.common.cmd.CommandResultCode;
 import com.exechange_test.core.common.config.ExchangeConfiguration;
+import com.exechange_test.core.orderbook.IOrderBook;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 @Slf4j
 public class ITCoreExample {
+    private IOrderBook orderBook;
 
     @Test
     public void sampleTest() throws Exception {
@@ -145,18 +148,18 @@ public class ITCoreExample {
 
         System.out.println("ApiPlaceOrder 2 result: " + future.get());
 
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(302L)
-                .orderId(5003L)
-                .price(15_150L)
-                .stopPrice(15_280L)
-                .size(5L)
-                .action(OrderAction.ASK)
-                .orderType(OrderType.STOP_LOSS)
-                .symbol(symbolXbtLtc)
-                .build());
-
-        System.out.println("ApiPlaceOrder 3 result: " + future.get());
+//        future = api.submitCommandAsync(ApiPlaceOrder.builder()
+//                .uid(302L)
+//                .orderId(5003L)
+//                .price(15_150L)
+//                .stopPrice(15_280L)
+//                .size(5L)
+//                .action(OrderAction.ASK)
+//                .orderType(OrderType.STOP_LOSS)
+//                .symbol(symbolXbtLtc)
+//                .build());
+//
+//        System.out.println("ApiPlaceOrder 3 result: " + future.get());
 
 
 
@@ -202,9 +205,13 @@ public class ITCoreExample {
 
         System.out.println("ApiAdjustUserBalance 1 result: " + future.get());
 
+
+
         // check fees collected
         Future<TotalCurrencyBalanceReportResult> totalsReport = api.processReport(new TotalCurrencyBalanceReportQuery(), 0);
-        System.out.println("LTC fees collected: " + totalsReport.get().getFees().get(currencyCodeLtc));
+        System.out.println("LTC balance: " + totalsReport.get().getGlobalBalancesSum());
+        System.out.println("non cache");
+
 
     }
 }
