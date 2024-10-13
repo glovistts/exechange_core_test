@@ -34,6 +34,7 @@ import net.openhft.chronicle.wire.InputStreamToWire;
 import net.openhft.chronicle.wire.Wire;
 import net.openhft.chronicle.wire.WireType;
 import org.agrona.collections.MutableLong;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -91,7 +92,7 @@ public final class DiskSerializationProcessor implements ISerializationProcessor
 //    final SingleWriterRecorder hdrRecorderRaw = new SingleWriterRecorder(Integer.MAX_VALUE, 2);
 //    final SingleWriterRecorder hdrRecorderLz4 = new SingleWriterRecorder(Integer.MAX_VALUE, 2);
 
-    public DiskSerializationProcessor(ExchangeConfiguration exchangeConfig,
+    public DiskSerializationProcessor(@NotNull ExchangeConfiguration exchangeConfig,
                                       DiskSerializationProcessorConfiguration diskConfig) {
 
         final InitialStateConfiguration initStateCfg = exchangeConfig.getInitStateCfg();

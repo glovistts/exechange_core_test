@@ -141,8 +141,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final List<Long> rangeList = (action == OrderAction.ASK) ? askRangeList : bidRangeList;
         //final NavigableMap<Long, List<Order>> slMap = (action == OrderAction.ASK) ? askMapSL : bidMapSL;
         final ConcurrentHashMap<Long, List<Order>> slMap = (action == OrderAction.ASK) ? askMapSL : bidMapSL;
-
-        synchronized (this) {
             if (rangeList.contains(roundedStopPrice)) {
                 //Get existing value and add new entry
                 final List<Order> orderList = slMap.get(roundedStopPrice);
@@ -156,7 +154,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
                 slMap.put(roundedStopPrice, newOrderList);
                 rangeList.add(roundedStopPrice);
             }
-        }
     }
 
     private void newOrderPlaceGtc(final OrderCommand cmd) {
@@ -167,7 +164,9 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final long stopPrice = 0;
 
         // check if order is marketable (if there are opposite matching orders)
-        final long filledSize = tryMatchInstantly(cmd, subtreeForMatching(action, price), 0, cmd);
+        final long filledSize = tryMatchInstantly(cmd,
+                subtreeForMatching(action, price),
+                0, cmd);
         if (filledSize == size) {
             // order was matched completely - nothing to place - can just return
             return;
@@ -200,7 +199,9 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
     private void newOrderMatchIoc(final OrderCommand cmd) {
 
-        final long filledSize = tryMatchInstantly(cmd, subtreeForMatching(cmd.action, cmd.price), 0, cmd);
+        final long filledSize = tryMatchInstantly(cmd,
+                subtreeForMatching(cmd.action, cmd.price)
+                , 0, cmd);
 
         final long rejectedSize = cmd.size - filledSize;
 

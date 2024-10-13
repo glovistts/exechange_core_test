@@ -142,7 +142,7 @@ public class ITCoreExample {
                 .stopPrice(15_300L)
                 .size(5L) // order size is 10 lots
                 .action(OrderAction.ASK)
-                .orderType(OrderType.STOP_LOSS) // stop_loss
+                .orderType(OrderType.IOC) // stop_loss
                 .symbol(symbolXbtLtc)
                 .build());
 
