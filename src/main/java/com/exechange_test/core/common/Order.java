@@ -89,8 +89,8 @@ public final class Order implements WriteBytesMarshallable, IOrder {
         bytes.writeLong(price);
         bytes.writeLong(size);
         bytes.writeLong(filled);
-        bytes.writeLong(stopPrice);
         bytes.writeLong(reserveBidPrice);
+        bytes.writeLong(stopPrice);
         bytes.writeByte(action.getCode());
         bytes.writeLong(uid);
         bytes.writeLong(timestamp);

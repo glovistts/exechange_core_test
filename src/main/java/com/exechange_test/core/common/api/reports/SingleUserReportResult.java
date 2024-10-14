@@ -84,7 +84,9 @@ public final class SingleUserReportResult implements ReportResult {
         this.accounts = bytesIn.readBoolean() ? SerializationUtils.readIntLongHashMap(bytesIn) : null;
         this.positions = bytesIn.readBoolean() ? SerializationUtils.readIntHashMap(bytesIn, Position::new) : null;
         this.orders = bytesIn.readBoolean() ? SerializationUtils.readIntHashMap(bytesIn, b -> SerializationUtils.readList(b, Order::new)) : null;
-        this.queryExecutionStatus = QueryExecutionStatus.of(bytesIn.readInt());
+        this.queryExecutionStatus = QueryExecutionStatus.of(
+                bytesIn.readInt()
+        );
     }
 
     @Override

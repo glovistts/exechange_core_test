@@ -39,19 +39,25 @@ public final class OrdersBucketNaive implements Comparable<OrdersBucketNaive>, W
     @Getter
     private final long price;
 
+    @Getter
+    private final long stopPrice;
+
+
     private final LinkedHashMap<Long, Order> entries;
 
     @Getter
     private long totalVolume;
 
-    public OrdersBucketNaive(final long price) {
+    public OrdersBucketNaive(final long price, final long stopPrice) {
         this.price = price;
+        this.stopPrice = stopPrice; // Initialize stopPrice
         this.entries = new LinkedHashMap<>();
         this.totalVolume = 0;
     }
 
     public OrdersBucketNaive(BytesIn bytes) {
         this.price = bytes.readLong();
+        this.stopPrice = bytes.readLong(); // Read stopPrice from bytes
         this.entries = SerializationUtils.readLongMap(bytes, LinkedHashMap::new, Order::new);
         this.totalVolume = bytes.readLong();
     }
@@ -199,6 +205,7 @@ public final class OrdersBucketNaive implements Comparable<OrdersBucketNaive>, W
     @Override
     public void writeMarshallable(BytesOut bytes) {
         bytes.writeLong(price);
+        bytes.writeLong(stopPrice);
         SerializationUtils.marshallLongMap(entries, bytes);
         bytes.writeLong(totalVolume);
     }

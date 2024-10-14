@@ -50,7 +50,7 @@ public final class MatcherTradeEvent {
     public long matchedOrderUid; // 0 for rejection
     public boolean matchedOrderCompleted; // false, except when matchedOrder is completely filled
 
-    public long price;
+    public static long price;
 
     // TRADE - trade size
     // REDUCE - effective reduce size of REDUCE command, or not filled size for CANCEL command
@@ -65,7 +65,9 @@ public final class MatcherTradeEvent {
     // reference to next event in chain
     public MatcherTradeEvent nextEvent;
 
-
+    public static Long getPrice() {
+        return price;
+    }
     // testing only
     public MatcherTradeEvent copy() {
         MatcherTradeEvent evt = new MatcherTradeEvent();
@@ -181,3 +183,5 @@ public final class MatcherTradeEvent {
                 '}';
     }
 }
+
+
