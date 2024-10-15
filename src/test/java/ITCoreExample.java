@@ -148,33 +148,6 @@ public class ITCoreExample {
         System.out.println("ApiPlaceOrder 2 result: " + future.get());
 
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(301L)
-                .orderId(5002L)
-                .price(15_270L)
-                .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
-                .size(2L) // order size is 35 lots
-                .action(OrderAction.BID)
-                .orderType(OrderType.GTC) // Good-till-Cancel
-                .symbol(symbolXbtLtc)
-                .build());
-
-        System.out.println("ApiPlaceOrder 3 result: " + future.get());
-
-
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(301L)
-                .orderId(5003L)
-                .price(15_470L)
-                .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
-                .size(2L) // order size is 35 lots
-                .action(OrderAction.BID)
-                .orderType(OrderType.GTC) // Good-till-Cancel
-                .symbol(symbolXbtLtc)
-                .build());
-
-        System.out.println("ApiPlaceOrder 4 result: " + future.get());
-
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(302L)
                 .orderId(6000L)
                 .price(14_950L)
@@ -184,11 +157,12 @@ public class ITCoreExample {
                 .orderType(OrderType.IOC) // stop_loss
                 .symbol(symbolXbtLtc)
                 .build());
+        System.out.println("ApiPlaceOrder 5 result: " + future.get());
 
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(302L)
                 .orderId(6001L)
-                .price(15_050L)
+                .price(14_850L)
                 .stopPrice(15_300L)
                 .size(1L) // order size is 10 lots
                 .action(OrderAction.ASK)
@@ -199,51 +173,48 @@ public class ITCoreExample {
         System.out.println("ApiPlaceOrder 5 result: " + future.get());
 
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(302L)
-                .orderId(5003L)
-                .price(15_150L)
-                .stopPrice(15_280L)
-                .size(5L)
-                .action(OrderAction.ASK)
-                .orderType(OrderType.IOC)
+                .uid(301L)
+                .orderId(5002L)
+                .price(15_080L)
+                .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
+                .size(2L) // order size is 35 lots
+                .action(OrderAction.BID)
+                .orderType(OrderType.GTC) // Good-till-Cancel
                 .symbol(symbolXbtLtc)
                 .build());
-
-        System.out.println("ApiPlaceOrder 3 result: " + future.get());
-
-
+        System.out.println("ApiPlaceOrder 2 result: " + future.get());
 
 
         // request order book
         CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
         System.out.println("ApiOrderBookRequest result: " + orderBookFuture.get());
-
-
-        // first user moves remaining order to price 1.53 LTC
-        future = api.submitCommandAsync(ApiMoveOrder.builder()
-                .uid(301L)
-                .orderId(5001L)
-                .newPrice(15_300L)
-                .symbol(symbolXbtLtc)
-                .build());
-
-        System.out.println("ApiMoveOrder 2 result: " + future.get());
-
-        // first user cancel remaining order
-        future = api.submitCommandAsync(ApiCancelOrder.builder()
-                .uid(301L)
-                .orderId(5001L)
-                .symbol(symbolXbtLtc)
-                .build());
-
-        System.out.println("ApiCancelOrder 2 result: " + future.get());
+//
+//
+//        // first user moves remaining order to price 1.53 LTC
+//        future = api.submitCommandAsync(ApiMoveOrder.builder()
+//                .uid(301L)
+//                .orderId(5001L)
+//                .newPrice(15_300L)
+//                .symbol(symbolXbtLtc)
+//                .build());
+//
+//        System.out.println("ApiMoveOrder 2 result: " + future.get());
+//
+//        // first user cancel remaining order
+//        future = api.submitCommandAsync(ApiCancelOrder.builder()
+//                .uid(301L)
+//                .orderId(5001L)
+//                .symbol(symbolXbtLtc)
+//                .build());
+//
+//        System.out.println("ApiCancelOrder 2 result: " + future.get());
 
          //check balances
 //        Future<SingleUserReportResult> report1 = api.processReport(new SingleUserReportQuery(301), 0);
 //        System.out.println("SingleUserReportQuery 1 accounts: " + report1.get().getAccounts());
-//
-//        Future<SingleUserReportResult> report2 = api.processReport(new SingleUserReportQuery(302), 0);
-//        System.out.println("SingleUserReportQuery 2 accounts: " + report2.get().getAccounts());
+
+        Future<SingleUserReportResult> report2 = api.processReport(new SingleUserReportQuery(302), 0);
+        System.out.println("SingleUserReportQuery 2 accounts: " + report2.get().getAccounts());
 
         // first user withdraws 0.10 BTC
 //        future = api.submitCommandAsync(ApiAdjustUserBalance.builder()

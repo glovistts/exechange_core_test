@@ -151,7 +151,7 @@ public final class SingleUserReportResult implements ReportResult {
                         IDENTITY,
                         (a, b) -> new SingleUserReportResult(
                                 a.uid,
-//                                SerializationUtils.preferNotNull(a.userProfile, b.userProfile),
+//                               SerializationUtils.preferNotNull(a.userProfile, b.userProfile),
                                 SerializationUtils.preferNotNull(a.userStatus, b.userStatus),
                                 SerializationUtils.preferNotNull(a.accounts, b.accounts),
                                 SerializationUtils.preferNotNull(a.positions, b.positions),

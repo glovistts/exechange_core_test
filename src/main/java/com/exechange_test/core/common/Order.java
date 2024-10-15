@@ -46,14 +46,16 @@ public final class Order implements WriteBytesMarshallable, IOrder {
     @Getter
     public long size;
 
-    @Getter
-    public long stopPrice;
+
     @Getter
     public long filled;
 
-    // new orders - reserved price for fast moves of GTC bid orders in exchange mode
     @Getter
     public long reserveBidPrice;
+
+    @Getter
+    public long stopPrice;
+    // new orders - reserved price for fast moves of GTC bid orders in exchange mode
 
     // required for PLACE_ORDER only;
     @Getter

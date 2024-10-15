@@ -240,9 +240,14 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         MatcherTradeEvent eventsTail = null;
 
         List<Long> emptyBuckets = new ArrayList<>();
+        System.out.println(bidBuckets);
+        System.out.println(askBuckets);
+        System.out.println(matchingBuckets.values());
         for (final OrdersBucketNaive bucket : matchingBuckets.values()) {
             Long currentPrice=MatcherTradeEvent.getPrice();
-            if(bucket.getStopPrice()!=0&&bucket.getStopPrice()<=currentPrice) {
+            if((activeOrder.getAction()==OrderAction.ASK&&((activeOrder.getStopPrice()!=0&&activeOrder.getStopPrice()>=currentPrice&&currentPrice!=0)||(activeOrder.getStopPrice()==0)))
+                    ||
+            ((activeOrder.getAction()==OrderAction.BID&&((bucket.getStopPrice()!=0&&bucket.getStopPrice()>=currentPrice&&currentPrice!=0)||(bucket.getStopPrice()==0))))) {
                 final long sizeLeft = orderSize - filled;
 
                 final OrdersBucketNaive.MatcherResult bucketMatchings = bucket.match(sizeLeft, activeOrder, eventsHelper);
