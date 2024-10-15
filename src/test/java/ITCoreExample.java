@@ -19,13 +19,18 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @Slf4j
 public class ITCoreExample {
     private IOrderBook orderBook;
 
     @Test
     public void sampleTest() throws Exception {
-
+        long[] expectedBidVolumes = {1L};
+        long[] expectedBidPrices = {15_080L};
+        int expectedBidSize = 1;
 //        SimpleEventsProcessor eventsProcessor = new SimpleEventsProcessor(new IEventsHandler() {
 //            @Override
 //            public void tradeEvent(TradeEvent tradeEvent) {
@@ -189,6 +194,10 @@ public class ITCoreExample {
         // request order book
         CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
         System.out.println("ApiOrderBookRequest result: " + orderBookFuture.get());
+
+        assertArrayEquals(expectedBidVolumes, orderBookFuture.get().bidVolumes);
+        assertArrayEquals(expectedBidPrices, orderBookFuture.get().bidPrices);
+        assertEquals(expectedBidSize, orderBookFuture.get().bidSize);
 //
 //
 //        // first user moves remaining order to price 1.53 LTC
