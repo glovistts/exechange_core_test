@@ -60,7 +60,6 @@ public final class ExchangeApi {
 
     public static final int LONGS_PER_MESSAGE = 5;
 
-
     public void processResult(final long seq, final OrderCommand cmd) {
 
 //        if (cmd.command == OrderCommandType.BINARY_DATA_COMMAND

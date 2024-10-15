@@ -11,13 +11,13 @@ import com.exechange_test.core.common.api.reports.TotalCurrencyBalanceReportQuer
 import com.exechange_test.core.common.api.reports.TotalCurrencyBalanceReportResult;
 import com.exechange_test.core.common.cmd.CommandResultCode;
 import com.exechange_test.core.common.config.ExchangeConfiguration;
+import com.exechange_test.core.my.AppConfig;
 import com.exechange_test.core.orderbook.IOrderBook;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 @Slf4j
 public class ITCoreExample {
@@ -26,43 +26,44 @@ public class ITCoreExample {
     @Test
     public void sampleTest() throws Exception {
 
-        SimpleEventsProcessor eventsProcessor = new SimpleEventsProcessor(new IEventsHandler() {
-            @Override
-            public void tradeEvent(TradeEvent tradeEvent) {
-                System.out.println("Trade event: " + tradeEvent);
-            }
-
-            @Override
-            public void reduceEvent(ReduceEvent reduceEvent) {
-                System.out.println("Reduce event: " + reduceEvent);
-            }
-
-            @Override
-            public void rejectEvent(RejectEvent rejectEvent) {
-                System.out.println("Reject event: " + rejectEvent);
-            }
-
-            @Override
-            public void commandResult(ApiCommandResult commandResult) {
-                System.out.println("Command result: " + commandResult);
-            }
-
-            @Override
-            public void orderBook(OrderBook orderBook) {
-                System.out.println("OrderBook event: " + orderBook);
-            }
-        });
-
-        ExchangeConfiguration conf = ExchangeConfiguration.defaultBuilder().build();
-
-        ExchangeCore exchangeCore = ExchangeCore.builder()
-                .resultsConsumer(eventsProcessor)
-                .exchangeConfiguration(conf)
-                .build();
-
-        exchangeCore.startup();
-
-        ExchangeApi api = exchangeCore.getApi();
+//        SimpleEventsProcessor eventsProcessor = new SimpleEventsProcessor(new IEventsHandler() {
+//            @Override
+//            public void tradeEvent(TradeEvent tradeEvent) {
+//                System.out.println("Trade event: " + tradeEvent);
+//            }
+//
+//            @Override
+//            public void reduceEvent(ReduceEvent reduceEvent) {
+//                System.out.println("Reduce event: " + reduceEvent);
+//            }
+//
+//            @Override
+//            public void rejectEvent(RejectEvent rejectEvent) {
+//                System.out.println("Reject event: " + rejectEvent);
+//            }
+//
+//            @Override
+//            public void commandResult(ApiCommandResult commandResult) {
+//                System.out.println("Command result: " + commandResult);
+//            }
+//
+//            @Override
+//            public void orderBook(OrderBook orderBook) {
+//                System.out.println("OrderBook event: " + orderBook);
+//            }
+//        });
+//
+//        ExchangeConfiguration conf = ExchangeConfiguration.defaultBuilder().build();
+//
+//        ExchangeCore exchangeCore = ExchangeCore.builder()
+//                .resultsConsumer(eventsProcessor)
+//                .exchangeConfiguration(conf)
+//                .build();
+//
+//        exchangeCore.startup();
+//
+//        ExchangeApi api = exchangeCore.getApi();
+        ExchangeApi api = AppConfig.getExchangeApi();
 
         final int currencyCodeXbt = 11;
         final int currencyCodeLtc = 15;
@@ -233,6 +234,7 @@ public class ITCoreExample {
 //        System.out.println("LTC balance: " + totalsReport.get().getGlobalBalancesSum());
 //        System.out.println("non cache");
 
-
     }
+
+
 }
