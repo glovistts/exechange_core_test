@@ -38,6 +38,7 @@ public class OrderCommand implements IOrder {
     @Getter
     public long stopPrice;
 
+    @Getter
     public int symbol;
 
     @Getter

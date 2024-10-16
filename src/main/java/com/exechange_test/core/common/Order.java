@@ -44,6 +44,9 @@ public final class Order implements WriteBytesMarshallable, IOrder {
     public long price;
 
     @Getter
+    public int symbol;
+
+    @Getter
     public long size;
 
 
@@ -74,6 +77,7 @@ public final class Order implements WriteBytesMarshallable, IOrder {
 
         this.orderId = bytes.readLong(); // orderId
         this.price = bytes.readLong();  // price
+        this.symbol=bytes.readInt();
         this.size = bytes.readLong(); // size
         this.filled = bytes.readLong(); // filled
         this.reserveBidPrice = bytes.readLong(); // price2

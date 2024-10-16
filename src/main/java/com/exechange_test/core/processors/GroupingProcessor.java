@@ -131,7 +131,7 @@ public final class GroupingProcessor implements EventProcessor {
 
         while (true) {
             try {
-
+                System.out.println(nextSequence);
                 // should spin and also check another barrier
                 long availableSequence = waitSpinningHelper.tryWaitFor(nextSequence);
 
@@ -139,7 +139,6 @@ public final class GroupingProcessor implements EventProcessor {
                     while (nextSequence <= availableSequence) {
 
                         final OrderCommand cmd = ringBuffer.get(nextSequence);
-
                         nextSequence++;
 
                         if (cmd.command == OrderCommandType.GROUPING_CONTROL) {

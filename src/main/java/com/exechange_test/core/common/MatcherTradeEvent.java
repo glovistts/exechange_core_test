@@ -22,18 +22,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 // TODO move activeOrderCompleted, eventType, section into the order?
 // TODO REDUCE needs remaining size (can write into size), bidderHoldPrice - can write into price
 // TODO REJECT needs remaining size (can not write into size),
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public final class MatcherTradeEvent {
+
+    public MatcherTradeEvent(){
+        if(symbol>0&&price>0){symbolPriceMap.put(symbol, price);}
+    }
+    @Getter
+    private static final Map<Integer, Long> symbolPriceMap = new HashMap<>();
+
+
+
 
     public MatcherEventType eventType; // TRADE, REDUCE, REJECT (rare) or BINARY_EVENT (reports data)
 
@@ -52,6 +58,8 @@ public final class MatcherTradeEvent {
 
     public static long price;
 
+    public static int symbol;
+
     // TRADE - trade size
     // REDUCE - effective reduce size of REDUCE command, or not filled size for CANCEL command
     // REJECT - unmatched size of rejected order
@@ -68,6 +76,9 @@ public final class MatcherTradeEvent {
     public static Long getPrice() {
         return price;
     }
+    public static int getSybmol() {
+        return symbol;
+    }
     // testing only
     public MatcherTradeEvent copy() {
         MatcherTradeEvent evt = new MatcherTradeEvent();
@@ -77,7 +88,8 @@ public final class MatcherTradeEvent {
         evt.matchedOrderId = this.matchedOrderId;
         evt.matchedOrderUid = this.matchedOrderUid;
         evt.matchedOrderCompleted = this.matchedOrderCompleted;
-        evt.price = this.price;
+        evt.price = price;
+        evt.symbol= symbol;
         evt.size = this.size;
 //        evt.timestamp = this.timestamp;
         evt.bidderHoldPrice = this.bidderHoldPrice;
@@ -105,6 +117,7 @@ public final class MatcherTradeEvent {
 
     @NotNull
     public static MatcherTradeEvent createEventChain(int chainLength) {
+
         final MatcherTradeEvent head = new MatcherTradeEvent();
         MatcherTradeEvent prev = head;
         for (int j = 1; j < chainLength; j++) {
@@ -112,6 +125,7 @@ public final class MatcherTradeEvent {
             prev.nextEvent = nextEvent;
             prev = nextEvent;
         }
+
         return head;
     }
 
@@ -160,6 +174,7 @@ public final class MatcherTradeEvent {
                 matchedOrderUid,
                 matchedOrderCompleted,
                 price,
+                symbol,
                 size,
                 bidderHoldPrice,
                 nextEvent);
@@ -176,6 +191,7 @@ public final class MatcherTradeEvent {
                 ", matchedOrderUid=" + matchedOrderUid +
                 ", matchedOrderCompleted=" + matchedOrderCompleted +
                 ", price=" + price +
+                ", symbol=" + symbol +
                 ", size=" + size +
 //                ", timestamp=" + timestamp +
                 ", bidderHoldPrice=" + bidderHoldPrice +

@@ -63,6 +63,7 @@ public final class OrderBookEventsHelper {
         event.matchedOrderCompleted = makerCompleted;
 
         event.price = matchingOrder.getPrice();
+        event.symbol=matchingOrder.getSymbol();
         event.size = size;
 
         // set order reserved price for correct released EBids

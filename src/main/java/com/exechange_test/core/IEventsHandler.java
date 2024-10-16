@@ -82,6 +82,7 @@ public interface IEventsHandler {
         public final long makerUid;
         public final boolean makerOrderCompleted;
         public final long price;
+        public final int symbol;
         public final long volume;
     }
 

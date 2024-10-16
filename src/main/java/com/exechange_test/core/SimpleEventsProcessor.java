@@ -81,6 +81,7 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
                         evt.matchedOrderUid,
                         evt.matchedOrderCompleted,
                         evt.price,
+                        evt.symbol,
                         evt.size);
 
                 trades.add(trade);

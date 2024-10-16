@@ -15,10 +15,7 @@
  */
 package com.exechange_test.core.orderbook;
 
-import com.exechange_test.core.common.IOrder;
-import com.exechange_test.core.common.MatcherTradeEvent;
-import com.exechange_test.core.common.Order;
-import com.exechange_test.core.common.OrderAction;
+import com.exechange_test.core.common.*;
 import com.exechange_test.core.utils.SerializationUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,7 +39,7 @@ public final class OrdersBucketNaive implements Comparable<OrdersBucketNaive>, W
     @Getter
     private final long stopPrice;
 
-
+    @Getter
     private final LinkedHashMap<Long, Order> entries;
 
     @Getter

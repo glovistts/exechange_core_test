@@ -99,9 +99,6 @@ public final class OrderBookDirectImpl implements IOrderBook {
             case FOK_BUDGET:
                 newOrderMatchFokBudget(cmd);
                 break;
-            case STOP_LOSS:
-                newOrderPlaceSL(cmd);
-                break;
             default:
                 log.warn("Unsupported order type: {}", cmd);
                 eventsHelper.attachRejectEvent(cmd, cmd.size);
@@ -114,6 +111,7 @@ public final class OrderBookDirectImpl implements IOrderBook {
             return;
         }
         final OrderAction action = cmd.action;
+        final int symbol=cmd.symbol;
         final long price = cmd.price;
         final long size = cmd.size;
         long newOrderId = cmd.orderId;
@@ -123,6 +121,7 @@ public final class OrderBookDirectImpl implements IOrderBook {
         final Order orderRecord = new Order(
                 newOrderId,
                 price,
+                symbol,
                 size,
                 filledSize,
                 cmd.reserveBidPrice,
@@ -308,10 +307,10 @@ public final class OrderBookDirectImpl implements IOrderBook {
         } else {
             bestBidOrder = makerOrder;
         }
-        if(EnableSL) {
-            processStopLoss(OrderAction.ASK, makerOrder.price);
-            processStopLoss(OrderAction.BID, makerOrder.price);
-        }
+//        if(EnableSL) {
+//            processStopLoss(OrderAction.ASK, makerOrder.price);
+//            processStopLoss(OrderAction.BID, makerOrder.price);
+//        }
 
 
         // return filled amount
@@ -801,6 +800,9 @@ public final class OrderBookDirectImpl implements IOrderBook {
 
         @Getter
         public long price;
+
+        @Getter
+        public int symbol;
 
         @Getter
         public long stopPrice;

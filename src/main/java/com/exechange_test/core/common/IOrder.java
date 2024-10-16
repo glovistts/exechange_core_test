@@ -21,6 +21,8 @@ public interface IOrder extends StateHash {
 
     long getSize();
 
+    int getSymbol();
+
     long getFilled();
 
     long getUid();
