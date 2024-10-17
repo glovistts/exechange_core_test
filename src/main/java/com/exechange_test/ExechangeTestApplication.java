@@ -29,6 +29,9 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
+        StopLossCheckThread stopLossThread = new StopLossCheckThread();
+        stopLossThread.start();
+
         ExchangeApi api = AppConfig.getExchangeApi();
 
         final int currencyCodeXbt = 11;
@@ -101,7 +104,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderId(5001L)
                 .price(15_070L)
                 .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
-                .size(2L) // order size is 35 lots
+                .size(1L) // order size is 35 lots
                 .action(OrderAction.BID)
                 .orderType(OrderType.GTC) // Good-till-Cancel
                 .symbol(symbolXbtLtc)
@@ -112,7 +115,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderId(6000L)
                 .price(14_950L)
                 .stopPrice(0L)
-                .size(1L) // order size is 10 lots
+                .size(2L) // order size is 10 lots
                 .action(OrderAction.ASK)
                 .orderType(OrderType.GTC) // stop_loss
                 .symbol(symbolXbtLtc)
@@ -135,24 +138,14 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderId(5002L)
                 .price(15_080L)
                 .reservePrice(15_600L)
-                .size(2L)
+                .size(3L)
                 .action(OrderAction.BID)
                 .orderType(OrderType.GTC) // Good-till-Cancel
                 .symbol(symbolXbtLtc)
                 .build());
 
-        api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(301L)
-                .orderId(6004L)
-                .price(15_000L)
-                .size(1L)
-                .action(OrderAction.ASK)
-                .orderType(OrderType.GTC) // Good-till-Cancel
-                .symbol(symbolXbtLtc)
-                .build());
 
-        //StopLossCheckThread stopLossThread = new StopLossCheckThread();
-        //stopLossThread.start();
+
         CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
     }
 }

@@ -139,6 +139,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final long stopPrice = cmd.stopPrice;
         final int symbol=cmd.symbol;
         final long orderId=cmd.orderId;
+        final OrderType orderType=cmd.orderType;
 
 
         final Order orderRecord = new Order(
@@ -150,6 +151,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
                 cmd.reserveBidPrice,
                 stopPrice,
                 action,
+                orderType,
                 cmd.uid,
                 cmd.timestamp);
 
@@ -165,6 +167,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final long size = cmd.size;
         final long stopPrice = cmd.stopPrice;
         final int symbol=cmd.symbol;
+        final OrderType orderType=cmd.orderType;
 
         final long filledSize = tryMatchInstantly(cmd,
                 subtreeForMatching(action, price),
@@ -189,6 +192,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
                 cmd.reserveBidPrice,
                 stopPrice,
                 action,
+                orderType,
                 cmd.uid,
                 cmd.timestamp);
 
@@ -275,6 +279,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
         List<Long> emptyBuckets = new ArrayList<>();
         for (final OrdersBucketNaive bucket : matchingBuckets.values()) {
+            System.out.println("MatcherTradeEvent"+MatcherTradeEvent.getSymbolPriceMap());
             Long currentPrice = Optional.ofNullable(MatcherTradeEvent.getSymbolPriceMap().get(activeOrder.getSymbol())).orElse(0L);
             System.out.println(currentPrice);
 //            if((activeOrder.getAction()==OrderAction.ASK&&((activeOrder.getStopPrice()!=0&&activeOrder.getStopPrice()>=currentPrice&&currentPrice!=0)||(activeOrder.getStopPrice()==0)))

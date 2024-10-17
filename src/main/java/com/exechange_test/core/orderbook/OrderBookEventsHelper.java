@@ -65,7 +65,7 @@ public final class OrderBookEventsHelper {
         event.price = matchingOrder.getPrice();
         event.symbol=matchingOrder.getSymbol();
         event.size = size;
-
+        if(event.price>0&&event.symbol>0){MatcherTradeEvent.getSymbolPriceMap().put(event.symbol, event.price);}
         // set order reserved price for correct released EBids
         event.bidderHoldPrice = bidderHoldPrice;
 

@@ -36,7 +36,7 @@ public final class MatcherTradeEvent {
         if(symbol>0&&price>0){symbolPriceMap.put(symbol, price);}
     }
     @Getter
-    private static final Map<Integer, Long> symbolPriceMap = new HashMap<>();
+    private static Map<Integer, Long> symbolPriceMap = new HashMap<>();
 
 
 

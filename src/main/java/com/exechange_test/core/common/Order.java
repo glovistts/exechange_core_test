@@ -15,10 +15,7 @@
  */
 package com.exechange_test.core.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
@@ -65,6 +62,10 @@ public final class Order implements WriteBytesMarshallable, IOrder {
     public OrderAction action;
 
     @Getter
+    @Setter
+    public OrderType orderType;
+
+    @Getter
     public long uid;
 
     @Getter
@@ -83,6 +84,7 @@ public final class Order implements WriteBytesMarshallable, IOrder {
         this.reserveBidPrice = bytes.readLong(); // price2
         this.stopPrice = bytes.readLong(); // price2
         this.action = OrderAction.of(bytes.readByte());
+        this.orderType=OrderType.of(bytes.readByte());
         this.uid = bytes.readLong(); // uid
         this.timestamp = bytes.readLong(); // timestamp
 //        this.userCookie = bytes.readInt();  // userCookie
@@ -98,6 +100,7 @@ public final class Order implements WriteBytesMarshallable, IOrder {
         bytes.writeLong(reserveBidPrice);
         bytes.writeLong(stopPrice);
         bytes.writeByte(action.getCode());
+        bytes.writeByte(orderType.getCode());
         bytes.writeLong(uid);
         bytes.writeLong(timestamp);
 //        bytes.writeInt(userCookie);

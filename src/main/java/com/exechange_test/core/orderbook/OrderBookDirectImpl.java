@@ -116,6 +116,7 @@ public final class OrderBookDirectImpl implements IOrderBook {
         final long size = cmd.size;
         long newOrderId = cmd.orderId;
         final long stopPrice = cmd.stopPrice;
+        final OrderType orderType = cmd.orderType;
         long filledSize = 0;
 
         final Order orderRecord = new Order(
@@ -127,6 +128,7 @@ public final class OrderBookDirectImpl implements IOrderBook {
                 cmd.reserveBidPrice,
                 stopPrice,
                 action,
+                orderType,
                 cmd.uid,
                 cmd.timestamp);
 
