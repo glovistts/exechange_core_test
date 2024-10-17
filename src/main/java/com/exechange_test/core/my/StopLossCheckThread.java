@@ -12,12 +12,16 @@ import com.exechange_test.core.orderbook.OrdersBucketNaive;
 import java.util.*;
 
 public class StopLossCheckThread implements Runnable {
+    private final int BUCKET_SIZE=10000;
     private volatile boolean running = true;
-    ExchangeApi api = AppConfig.getExchangeApi();
+    private final ExchangeApi api;
+
+    public StopLossCheckThread() {
+        this.api = AppConfig.getExchangeApi();
+    }
 
     public void start() {
-        Thread thread = new Thread(this);
-        thread.start();
+        new Thread(this).start();
     }
 
     public void stop() {
@@ -28,27 +32,30 @@ public class StopLossCheckThread implements Runnable {
     public void run() {
         while (running) {
             try {
-                checkSLBucket();
-            }catch (Exception e){
-                System.out.println(e);
-            }
+                checkSLBuckets();
+            } catch (Exception ignored) {}
         }
     }
 
-    private void checkSLBucket() {
+    private void checkSLBuckets() {
         List<OrdersBucketNaive> buckets = new ArrayList<>(OrderBookNaiveImpl.getSlBuckets().values());
         List<Thread> threads = new ArrayList<>();
 
-        for (int i = 0; i < buckets.size(); i += 1000) {
-            int end = Math.min(i + 1000, buckets.size());
-            List<OrdersBucketNaive> chunk = buckets.subList(i, end);
-
-            Thread thread = new Thread(() -> processChunk(chunk));
-            thread.start();
-            threads.add(thread); // Store the thread reference
+        for (int i = 0; i < buckets.size(); i += BUCKET_SIZE) {
+            List<OrdersBucketNaive> chunk = buckets.subList(i, Math.min(i + BUCKET_SIZE, buckets.size()));
+            threads.add(startNewThreadForChunk(chunk));
         }
 
-        // Wait for all threads to finish
+        waitForThreadsToComplete(threads);
+    }
+
+    private Thread startNewThreadForChunk(List<OrdersBucketNaive> chunk) {
+        Thread thread = new Thread(() -> processChunk(chunk));
+        thread.start();
+        return thread;
+    }
+
+    private void waitForThreadsToComplete(List<Thread> threads) {
         for (Thread thread : threads) {
             try {
                 thread.join();
@@ -59,30 +66,44 @@ public class StopLossCheckThread implements Runnable {
         }
     }
 
-
     private void processChunk(List<OrdersBucketNaive> chunk) {
         for (OrdersBucketNaive bucket : chunk) {
-            Iterator<Map.Entry<Long, Order>> iterator = bucket.getEntries().entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<Long, Order> entry = iterator.next();
-                Order subBucket = entry.getValue();
-                long currentPrice = Optional.ofNullable(MatcherTradeEvent.getSymbolPriceMap().get(subBucket.getSymbol())).orElse(0L);
+            processBucketEntries(bucket);
+        }
+    }
 
-                if (!(subBucket.getStopPrice() > currentPrice && currentPrice != 0)) continue;
+    private void processBucketEntries(OrdersBucketNaive bucket) {
+        Iterator<Map.Entry<Long, Order>> iterator = bucket.getEntries().entrySet().iterator();
 
+        while (iterator.hasNext()) {
+            Map.Entry<Long, Order> entry = iterator.next();
+            Order subBucket = entry.getValue();
+            long currentPrice = getCurrentPrice(subBucket.getSymbol());
+
+            if (shouldActivateStopLoss(subBucket, currentPrice)) {
                 iterator.remove();
-                    api.submitCommandAsync(ApiPlaceOrder.builder()
-                            .uid(subBucket.getUid())
-                            .orderId(subBucket.getOrderId())
-                            .price(subBucket.getPrice())
-                            .size(subBucket.getSize())
-                            .action(OrderAction.ASK)
-                            .orderType(OrderType.GTC)
-                            .symbol(subBucket.getSymbol())
-                            .build());
-
+                submitStopLossOrder(subBucket);
             }
         }
     }
 
+    private long getCurrentPrice(int symbol) {
+        return Optional.ofNullable(MatcherTradeEvent.getSymbolPriceMap().get(symbol)).orElse(0L);
+    }
+
+    private boolean shouldActivateStopLoss(Order order, long currentPrice) {
+        return order.getStopPrice() > currentPrice && currentPrice != 0;
+    }
+
+    private void submitStopLossOrder(Order order) {
+        api.submitCommandAsync(ApiPlaceOrder.builder()
+                .uid(order.getUid())
+                .orderId(order.getOrderId())
+                .price(order.getPrice())
+                .size(order.getSize())
+                .action(OrderAction.ASK)
+                .orderType(OrderType.GTC)
+                .symbol(order.getSymbol())
+                .build());
+    }
 }

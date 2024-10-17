@@ -9,18 +9,19 @@ import com.exechange_test.core.common.api.binary.BatchAddSymbolsCommand;
 import com.exechange_test.core.common.cmd.CommandResultCode;
 import com.exechange_test.core.my.AppConfig;
 import com.exechange_test.core.my.StopLossCheckThread;
+import net.openhft.chronicle.core.util.Time;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 
 @SpringBootApplication
 @EnableScheduling
 public abstract class ExechangeTestApplication  implements CommandLineRunner {
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public static void main(String[] args) {
         SpringApplication.run(ExechangeTestApplication.class, args);
@@ -53,12 +54,13 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .build();
 
         future = api.submitBinaryDataAsync(new BatchAddSymbolsCommand(symbolSpecXbtLtc));
-
+        //System.out.println(future.get());
 
         // create user uid=301
         future = api.submitCommandAsync(ApiAddUser.builder()
                 .uid(301L)
                 .build());
+        //System.out.println(future.get());
 
 
 
@@ -66,6 +68,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
         future = api.submitCommandAsync(ApiAddUser.builder()
                 .uid(302L)
                 .build());
+        //System.out.println(future.get());
 
 
         // first user deposits 20 LTC
@@ -75,6 +78,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .amount(2_000_000_000L)
                 .transactionId(1L)
                 .build());
+        //System.out.println(future.get());
 
 
 
@@ -85,6 +89,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .amount(20_000_000L)
                 .transactionId(2L)
                 .build());
+        //System.out.println(future.get());
 
 
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
@@ -97,6 +102,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderType(OrderType.STOP_LOSS) // stop_loss
                 .symbol(symbolXbtLtc)
                 .build());
+        //System.out.println(future.get());
 
 
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
@@ -109,6 +115,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderType(OrderType.GTC) // Good-till-Cancel
                 .symbol(symbolXbtLtc)
                 .build());
+        //System.out.println(future.get());
 
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(302L)
@@ -120,6 +127,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderType(OrderType.GTC) // stop_loss
                 .symbol(symbolXbtLtc)
                 .build());
+        //System.out.println(future.get());
 
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(302L)
@@ -131,6 +139,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderType(OrderType.STOP_LOSS) // stop_loss
                 .symbol(symbolXbtLtc)
                 .build());
+        //System.out.println(future.get());
 
 
         api.submitCommandAsync(ApiPlaceOrder.builder()
@@ -138,14 +147,28 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderId(5002L)
                 .price(15_080L)
                 .reservePrice(15_600L)
-                .size(3L)
+                .size(2L)
                 .action(OrderAction.BID)
                 .orderType(OrderType.GTC) // Good-till-Cancel
                 .symbol(symbolXbtLtc)
                 .build());
+        //System.out.println(future.get());
 
 
+        CompletableFuture<L2MarketData> orderBookFuture2 = api.requestOrderBookAsync(symbolXbtLtc, 10);
+        System.out.println("ApiOrderBookRequest result: " + orderBookFuture2.get());
 
-        CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
+        scheduler.schedule(() -> {
+            CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
+            try {
+                System.out.println("orderBookFuture: " + orderBookFuture.get());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }, 5, TimeUnit.SECONDS);
+
+
     }
 }
