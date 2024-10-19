@@ -216,19 +216,6 @@ public final class RiskEngine implements WriteBytesMarshallable {
         }
     }
 
-
-    /**
-     * Pre-process command handler
-     * 1. MOVE/CANCEL commands ignored, for specific uid marked as valid for matching engine
-     * 2. PLACE ORDER checked with risk ending for specific uid
-     * 3. ADD USER, BALANCE_ADJUSTMENT processed for specific uid, not valid for matching engine
-     * 4. BINARY_DATA commands processed for ANY uid and marked as valid for matching engine TODO which handler marks?
-     * 5. RESET commands processed for any uid
-     *
-     * @param cmd - command
-     * @param seq - command sequence
-     * @return true if caller should publish sequence even if batch was not processed yet
-     */
     public boolean preProcessCommand(final long seq, final OrderCommand cmd) {
         switch (cmd.command) {
             case MOVE_ORDER:
@@ -358,6 +345,10 @@ public final class RiskEngine implements WriteBytesMarshallable {
     private CommandResultCode placeOrderRiskCheck(final OrderCommand cmd) {
 
         final UserProfile userProfile = userProfileService.getUserProfile(cmd.uid);
+
+//        if(cmd.orderType==OrderType.STOP_LOSS){
+//            return CommandResultCode.VALID_FOR_MATCHING_ENGINE;
+//        }
         if (userProfile == null) {
             cmd.resultCode = CommandResultCode.AUTH_INVALID_USER;
             log.warn("User profile {} not found", cmd.uid);
@@ -502,22 +493,6 @@ public final class RiskEngine implements WriteBytesMarshallable {
             return CommandResultCode.VALID_FOR_MATCHING_ENGINE;
         }
     }
-
-
-    /**
-     * Checks:
-     * 1. Users account balance
-     * 2. Margin
-     * 3. Current limit orders
-     * <p>
-     * NOTE: Current implementation does not care about accounts and positions quoted in different currencies
-     *
-     * @param cmd         - order command
-     * @param userProfile - user profile
-     * @param spec        - symbol specification
-     * @param position    - users position
-     * @return true if placing is allowed
-     */
     private boolean canPlaceMarginOrder(final OrderCommand cmd,
                                         final UserProfile userProfile,
                                         final CoreSymbolSpecification spec,
@@ -548,10 +523,6 @@ public final class RiskEngine implements WriteBytesMarshallable {
             }
         }
 
-//        log.debug("newMargin={} <= account({})={} + free {}",
-//                newRequiredMarginForSymbol, position.currency, userProfile.accounts.get(position.currency), freeMargin);
-
-        // check if current balance and margin can cover new required margin for symbol position
         return newRequiredMarginForSymbol <= userProfile.accounts.get(position.currency) + freeMargin;
     }
 

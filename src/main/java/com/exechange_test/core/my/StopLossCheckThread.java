@@ -11,12 +11,13 @@ import com.exechange_test.core.orderbook.OrderBookNaiveImpl;
 import com.exechange_test.core.orderbook.OrdersBucketNaive;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class StopLossCheckThread implements Runnable {
 
     PerformanceConfiguration perfConfig;
 
-    private final int BUCKET_SIZE=10000;
+    private final int BUCKET_SIZE=100000;
     private volatile boolean running = true;
     private final ExchangeApi api;
 
@@ -37,7 +38,8 @@ public class StopLossCheckThread implements Runnable {
         while (running) {
             try {
                 checkSLBuckets();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -64,7 +66,7 @@ public class StopLossCheckThread implements Runnable {
             try {
                 thread.join();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // Restore the interrupted status
+                Thread.currentThread().interrupt();
                 System.out.println("Thread was interrupted: " + e.getMessage());
             }
         }
@@ -77,18 +79,17 @@ public class StopLossCheckThread implements Runnable {
     }
 
     private void processBucketEntries(OrdersBucketNaive bucket) {
-        Iterator<Map.Entry<Long, Order>> iterator = bucket.getEntries().entrySet().iterator();
 
-        while (iterator.hasNext()) {
-            Map.Entry<Long, Order> entry = iterator.next();
-            Order subBucket = entry.getValue();
-            long currentPrice = getCurrentPrice(subBucket.getSymbol());
-
-            if (shouldActivateStopLoss(subBucket, currentPrice)) {
-                iterator.remove();
-                submitStopLossOrder(subBucket);
-            }
-        }
+        bucket.getEntries().entrySet().stream()
+                .filter(entry -> {
+                    Order subBucket = entry.getValue();
+                    long currentPrice = getCurrentPrice(subBucket.getSymbol());
+                    return shouldActivateStopLoss(subBucket, currentPrice);
+                })
+                .forEach(entry -> {
+                    bucket.getEntries().remove(entry.getKey());
+                    submitStopLossOrderAsync(entry.getValue());
+                });
     }
 
     private long getCurrentPrice(int symbol) {
@@ -99,15 +100,17 @@ public class StopLossCheckThread implements Runnable {
         return order.getStopPrice() > currentPrice && currentPrice != 0;
     }
 
-    private void submitStopLossOrder(Order order) {
-        api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(order.getUid())
-                .orderId(order.getOrderId())
-                .price(order.getPrice())
-                .size(order.getSize())
-                .action(OrderAction.ASK)
-                .orderType(OrderType.GTC)
-                .symbol(order.getSymbol())
-                .build());
+    private void submitStopLossOrderAsync(Order order) {
+        CompletableFuture.runAsync(() -> {
+            api.submitCommandAsync(ApiPlaceOrder.builder()
+                    .uid(order.getUid())
+                    .orderId(order.getOrderId())
+                    .price(order.getPrice())
+                    .size(order.getSize())
+                    .action(OrderAction.ASK)
+                    .orderType(OrderType.GTC)
+                    .symbol(order.getSymbol())
+                    .build());
+        });
     }
 }

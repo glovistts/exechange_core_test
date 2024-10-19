@@ -65,10 +65,22 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .amount(20_000_000L)
                 .transactionId(2L)
                 .build());
+
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(302L)
                 .orderId(6002L)
                 .price(15_050L)
+                .stopPrice(15_300L)
+                .size(1L) // order size is 10 lots
+                .action(OrderAction.ASK)
+                .orderType(OrderType.STOP_LOSS) // stop_loss
+                .symbol(symbolXbtLtc)
+                .build());
+
+        future = api.submitCommandAsync(ApiPlaceOrder.builder()
+                .uid(302L)
+                .orderId(6001L)
+                .price(14_850L)
                 .stopPrice(15_300L)
                 .size(1L) // order size is 10 lots
                 .action(OrderAction.ASK)
@@ -95,16 +107,6 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderType(OrderType.GTC) // stop_loss
                 .symbol(symbolXbtLtc)
                 .build());
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(302L)
-                .orderId(6001L)
-                .price(14_850L)
-                .stopPrice(15_300L)
-                .size(1L) // order size is 10 lots
-                .action(OrderAction.ASK)
-                .orderType(OrderType.STOP_LOSS) // stop_loss
-                .symbol(symbolXbtLtc)
-                .build());
         api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(301L)
                 .orderId(5002L)
@@ -115,6 +117,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderType(OrderType.GTC) // Good-till-Cancel
                 .symbol(symbolXbtLtc)
                 .build());
+
         CompletableFuture<L2MarketData> orderBookFuture2 = api.requestOrderBookAsync(symbolXbtLtc, 10);
         System.out.println("ApiOrderBookRequest result: " + orderBookFuture2.get());
         scheduler.schedule(() -> {

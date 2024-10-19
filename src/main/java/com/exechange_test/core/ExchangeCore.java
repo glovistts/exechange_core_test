@@ -62,18 +62,11 @@ public final class ExchangeCore {
 
     private final ExchangeConfiguration exchangeConfiguration;
 
-    // core can be started and stopped only once
     private boolean started = false;
     private boolean stopped = false;
 
-    // enable MatcherTradeEvent pooling
     public static final boolean EVENTS_POOLING = false;
 
-    /**
-     * Exchange core constructor.
-     *  @param resultsConsumer       - custom consumer of processed commands
-     * @param exchangeConfiguration - exchange configuration
-     */
     @Builder
     public ExchangeCore(final ObjLongConsumer<OrderCommand> resultsConsumer,
                         final ExchangeConfiguration exchangeConfiguration) {
@@ -228,11 +221,6 @@ public final class ExchangeCore {
         }
     }
 
-    /**
-     * Provides ExchangeApi instance.
-     *
-     * @return ExchangeApi instance (always same object)
-     */
     public ExchangeApi getApi() {
         return api;
     }
@@ -242,19 +230,10 @@ public final class ExchangeCore {
         cmd.resultCode = CommandResultCode.NEW;
     };
 
-    /**
-     * shut down disruptor
-     */
     public synchronized void shutdown() {
         shutdown(-1, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Will throw IllegalStateException if an exchange core can not stop gracefully.
-     *
-     * @param timeout  the amount of time to wait for all events to be processed. <code>-1</code> will give an infinite timeout
-     * @param timeUnit the unit the timeOut is specified in
-     */
     public synchronized void shutdown(final long timeout, final TimeUnit timeUnit) {
         if (!stopped) {
             stopped = true;

@@ -347,20 +347,13 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final long price = order.price;
         final OrdersBucketNaive ordersBucket = buckets.get(price);
         if (ordersBucket == null) {
-            // not possible state
             throw new IllegalStateException("Can not find bucket for order price=" + price + " for order " + order);
         }
-
-        // remove order and whole bucket if its empty
         ordersBucket.remove(orderId, cmd.uid);
         if (ordersBucket.getTotalVolume() == 0) {
             buckets.remove(price);
         }
-
-        // send reduce event
         cmd.matcherEvent = eventsHelper.sendReduceEvent(order, order.getSize() - order.getFilled(), true);
-
-        // fill action fields (for events handling)
         cmd.action = order.getAction();
 
         return CommandResultCode.SUCCESS;
@@ -377,7 +370,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
         final Order order = idMap.get(orderId);
         if (order == null || order.uid != cmd.uid) {
-            // already matched, moved or cancelled
             return CommandResultCode.MATCHING_UNKNOWN_ORDER_ID;
         }
 
@@ -387,18 +379,13 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final NavigableMap<Long, OrdersBucketNaive> buckets = getBucketsByAction(order.action);
         final OrdersBucketNaive ordersBucket = buckets.get(order.price);
         if (ordersBucket == null) {
-            // not possible state
             throw new IllegalStateException("Can not find bucket for order price=" + order.price + " for order " + order);
         }
 
         final boolean canRemove = (reduceBy == remainingSize);
 
         if (canRemove) {
-
-            // now can remove order
             idMap.remove(orderId);
-
-            // canRemove order and whole bucket if it is empty
             ordersBucket.remove(orderId, cmd.uid);
             if (ordersBucket.getTotalVolume() == 0) {
                 buckets.remove(order.price);
@@ -409,11 +396,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
             order.size -= reduceBy;
             ordersBucket.reduceSize(reduceBy);
         }
-
-        // send reduce event
         cmd.matcherEvent = eventsHelper.sendReduceEvent(order, reduceBy, canRemove);
-
-        // fill action fields (for events handling)
         cmd.action = order.getAction();
 
         return CommandResultCode.SUCCESS;
@@ -428,7 +411,6 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
         final Order order = idMap.get(orderId);
         if (order == null || order.uid != cmd.uid) {
-            // already matched, moved or cancelled
             return CommandResultCode.MATCHING_UNKNOWN_ORDER_ID;
         }
 
@@ -436,23 +418,14 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final NavigableMap<Long, OrdersBucketNaive> buckets = getBucketsByAction(order.action);
         final OrdersBucketNaive bucket = buckets.get(price);
 
-        // fill action fields (for events handling)
         cmd.action = order.getAction();
-
-        // reserved price risk check for exchange bids
         if (symbolSpec.type == SymbolType.CURRENCY_EXCHANGE_PAIR
                 && order.action == OrderAction.BID
                 && cmd.price > order.reserveBidPrice) {
             return CommandResultCode.MATCHING_MOVE_FAILED_PRICE_OVER_RISK_LIMIT;
         }
-
-        // take order out of the original bucket and clean bucket if its empty
         bucket.remove(orderId, cmd.uid);
-
-        if (bucket.getTotalVolume() == 0) {
-            buckets.remove(price);
-        }
-
+        if (bucket.getTotalVolume() == 0) {buckets.remove(price);}
         order.price = newPrice;
 
         // try match with new price

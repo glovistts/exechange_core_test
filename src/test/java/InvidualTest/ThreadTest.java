@@ -69,6 +69,16 @@ public class ThreadTest {
                 .symbol(symbolXbtLtc)
                 .build());
         future = api.submitCommandAsync(ApiPlaceOrder.builder()
+                .uid(302L)
+                .orderId(6001L)
+                .price(14_850L)
+                .stopPrice(15_300L)
+                .size(1L) // order size is 10 lots
+                .action(OrderAction.ASK)
+                .orderType(OrderType.STOP_LOSS) // stop_loss
+                .symbol(symbolXbtLtc)
+                .build());
+        future = api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(301L)
                 .orderId(5001L)
                 .price(15_070L)
@@ -88,16 +98,6 @@ public class ThreadTest {
                 .orderType(OrderType.GTC) // stop_loss
                 .symbol(symbolXbtLtc)
                 .build());
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(302L)
-                .orderId(6001L)
-                .price(14_850L)
-                .stopPrice(15_300L)
-                .size(1L) // order size is 10 lots
-                .action(OrderAction.ASK)
-                .orderType(OrderType.STOP_LOSS) // stop_loss
-                .symbol(symbolXbtLtc)
-                .build());
         api.submitCommandAsync(ApiPlaceOrder.builder()
                 .uid(301L)
                 .orderId(5002L)
@@ -113,7 +113,7 @@ public class ThreadTest {
 
         CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
         long[] expectedBidVolumes = {1L};
-        long[] expectedBidPrices = {14850};
+        long[] expectedBidPrices = {15050};
         int expectedBidSize = 1;
         L2MarketData orderBook = null;
         try {

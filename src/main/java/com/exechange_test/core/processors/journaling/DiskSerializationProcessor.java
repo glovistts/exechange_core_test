@@ -263,7 +263,6 @@ public final class DiskSerializationProcessor implements ISerializationProcessor
         }
 
         if (!cmdType.isMutate()) {
-            // skip queries
             return;
         }
 
