@@ -6,12 +6,16 @@ import com.exechange_test.core.common.Order;
 import com.exechange_test.core.common.OrderAction;
 import com.exechange_test.core.common.OrderType;
 import com.exechange_test.core.common.api.ApiPlaceOrder;
+import com.exechange_test.core.common.config.PerformanceConfiguration;
 import com.exechange_test.core.orderbook.OrderBookNaiveImpl;
 import com.exechange_test.core.orderbook.OrdersBucketNaive;
 
 import java.util.*;
 
 public class StopLossCheckThread implements Runnable {
+
+    PerformanceConfiguration perfConfig;
+
     private final int BUCKET_SIZE=10000;
     private volatile boolean running = true;
     private final ExchangeApi api;

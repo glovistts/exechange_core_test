@@ -1,34 +1,27 @@
-package com.exechange_test;
+package InvidualTest;
 
 import com.exechange_test.core.ExchangeApi;
 import com.exechange_test.core.common.*;
-import com.exechange_test.core.common.api.ApiAddUser;
-import com.exechange_test.core.common.api.ApiAdjustUserBalance;
-import com.exechange_test.core.common.api.ApiPlaceOrder;
+import com.exechange_test.core.common.api.*;
 import com.exechange_test.core.common.api.binary.BatchAddSymbolsCommand;
 import com.exechange_test.core.common.cmd.CommandResultCode;
 import com.exechange_test.core.my.AppConfig;
 import com.exechange_test.core.my.StopLossCheckThread;
-import net.openhft.chronicle.core.util.Time;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.util.concurrent.*;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootApplication
-@EnableScheduling
-public abstract class ExechangeTestApplication  implements CommandLineRunner {
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-    public static void main(String[] args) {
-        SpringApplication.run(ExechangeTestApplication.class, args);
-    }
-
-    @Override
-    public void run(String... args) throws Exception {
+@Slf4j
+public class ThreadTest {
+    @Test
+    @Execution(ExecutionMode.SAME_THREAD)
+    public void sampleTestWithThread() throws Exception {
         StopLossCheckThread stopLossThread = new StopLossCheckThread();
         stopLossThread.start();
         ExchangeApi api = AppConfig.getExchangeApi();
@@ -115,17 +108,24 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .orderType(OrderType.GTC) // Good-till-Cancel
                 .symbol(symbolXbtLtc)
                 .build());
-        CompletableFuture<L2MarketData> orderBookFuture2 = api.requestOrderBookAsync(symbolXbtLtc, 10);
-        System.out.println("ApiOrderBookRequest result: " + orderBookFuture2.get());
-        scheduler.schedule(() -> {
-            CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
-            try {
-                System.out.println("orderBookFuture: " + orderBookFuture.get());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }, 5, TimeUnit.SECONDS);
+
+        Thread.sleep(1200);
+
+        CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
+        long[] expectedBidVolumes = {1L};
+        long[] expectedBidPrices = {14850};
+        int expectedBidSize = 1;
+        L2MarketData orderBook = null;
+        try {
+            orderBook = orderBookFuture.get();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+        assertArrayEquals(expectedBidVolumes, orderBook.askVolumes);
+        assertArrayEquals(expectedBidPrices, orderBook.askPrices);
+        assertEquals(expectedBidSize, orderBook.askSize);
+
     }
 }

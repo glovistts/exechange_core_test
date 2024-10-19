@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 @Builder
 public final class PerformanceConfiguration {
 
-    public static final PerformanceConfiguration DEFAULT = PerformanceConfiguration.baseBuilder().build();
+    public static final PerformanceConfiguration DEFAULT = PerformanceConfiguration.throughputPerformanceBuilder().build();
 
     /*
      * Disruptor ring buffer size (number of commands). Must be power of 2.
@@ -46,6 +46,8 @@ public final class PerformanceConfiguration {
      * Higher values, like 2000 provide better throughput and tail latency.
      */
     private final int msgsInGroupLimit;
+
+    private final long stopLossThreadBatchSize;
 
 
     /*
@@ -123,6 +125,7 @@ public final class PerformanceConfiguration {
                 .maxGroupDurationNs(10_000)
                 .sendL2ForEveryCmd(false)
                 .l2RefreshDepth(8)
+                .stopLossThreadBatchSize(500L)
                 .threadFactory(Thread::new)
                 .waitStrategy(CoreWaitStrategy.BLOCKING)
                 .binaryCommandsLz4CompressorFactory(() -> LZ4Factory.fastestInstance().highCompressor())
@@ -139,6 +142,7 @@ public final class PerformanceConfiguration {
                 .maxGroupDurationNs(10_000)
                 .sendL2ForEveryCmd(false)
                 .l2RefreshDepth(8)
+                .stopLossThreadBatchSize(5000L)
                 .threadFactory(new AffinityThreadFactory(AffinityThreadFactory.ThreadAffinityMode.THREAD_AFFINITY_ENABLE_PER_LOGICAL_CORE))
                 .waitStrategy(CoreWaitStrategy.BUSY_SPIN)
                 .binaryCommandsLz4CompressorFactory(() -> LZ4Factory.fastestInstance().highCompressor())
@@ -155,6 +159,7 @@ public final class PerformanceConfiguration {
                 .maxGroupDurationNs(4_000_000)
                 .sendL2ForEveryCmd(false)
                 .l2RefreshDepth(8)
+                .stopLossThreadBatchSize(30000L)
                 .threadFactory(Thread::new)
 //                .threadFactory(new AffinityThreadFactory(AffinityThreadFactory.ThreadAffinityMode.THREAD_AFFINITY_ENABLE_PER_LOGICAL_CORE))
                 .waitStrategy(CoreWaitStrategy.BUSY_SPIN)
