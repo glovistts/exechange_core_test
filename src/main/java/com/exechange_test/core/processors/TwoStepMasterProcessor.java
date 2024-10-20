@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
-public final class TwoStepMasterProcessor implements EventProcessor {
+public class TwoStepMasterProcessor implements EventProcessor {
     private static final int IDLE = 0;
     private static final int HALTED = IDLE +1;
     private static final int RUNNING = HALTED + 1;

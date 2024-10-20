@@ -216,8 +216,7 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
             bucket.getEntries().entrySet().stream()
                     .filter(entry -> {
                         Order subBucket = entry.getValue();
-                        long currentPrice = getCurrentPrice(subBucket.getSymbol());
-                        return shouldActivateStopLoss(subBucket, currentPrice);
+                        return shouldActivateStopLoss(subBucket, getCurrentPrice(subBucket.getSymbol()));
                     })
                     .forEach(entry -> {
                         bucket.remove(entry.getValue().orderId,entry.getValue().uid);

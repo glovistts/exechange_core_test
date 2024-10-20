@@ -187,7 +187,6 @@ public final class ExchangeCore {
                     return r2;
                 }));
 
-
         // 4. results handler (E) after matching engine (ME) + [journaling (J)]
         final EventHandlerGroup<OrderCommand> mainHandlerGroup = enableJournaling
                 ? disruptor.after(arraysAddHandler(matchingEngineHandlers, jh))
