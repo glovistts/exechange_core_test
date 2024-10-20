@@ -15,6 +15,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.*;
 
 
@@ -22,15 +24,15 @@ import java.util.concurrent.*;
 @EnableScheduling
 public abstract class ExechangeTestApplication  implements CommandLineRunner {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
     public static void main(String[] args) {
         SpringApplication.run(ExechangeTestApplication.class, args);
     }
 
     @Override
     public void run(String... args) throws Exception {
-        StopLossCheckThread stopLossThread = new StopLossCheckThread();
-        stopLossThread.start();
+//        StopLossCheckThread stopLossThread = new StopLossCheckThread();
+//        stopLossThread.start();
         ExchangeApi api = AppConfig.getExchangeApi();
         final int currencyCodeXbt = 11;
         final int currencyCodeLtc = 15;
@@ -47,76 +49,84 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .makerFee(700L)
                 .build();
         future = api.submitBinaryDataAsync(new BatchAddSymbolsCommand(symbolSpecXbtLtc));
-        future = api.submitCommandAsync(ApiAddUser.builder()
-                .uid(301L)
-                .build());
-        future = api.submitCommandAsync(ApiAddUser.builder()
-                .uid(302L)
-                .build());
-        future = api.submitCommandAsync(ApiAdjustUserBalance.builder()
-                .uid(301L)
-                .currency(currencyCodeLtc)
-                .amount(2_000_000_000L)
-                .transactionId(1L)
-                .build());
-        future = api.submitCommandAsync(ApiAdjustUserBalance.builder()
-                .uid(302L)
-                .currency(currencyCodeXbt)
-                .amount(20_000_000L)
-                .transactionId(2L)
-                .build());
+        long userId=1;
+        while(userId<500){
+            future = api.submitCommandAsync(ApiAddUser.builder()
+                    .uid(userId)
+                    .build());
+            future = api.submitCommandAsync(ApiAddUser.builder()
+                    .uid(userId+1)
+                    .build());
+            future = api.submitCommandAsync(ApiAdjustUserBalance.builder()
+                    .uid(userId)
+                    .currency(currencyCodeLtc)
+                    .amount(2_000_000_000L)
+                    .transactionId(1L)
+                    .build());
+            future = api.submitCommandAsync(ApiAdjustUserBalance.builder()
+                    .uid(userId+1)
+                    .currency(currencyCodeXbt)
+                    .amount(20_000_000L)
+                    .transactionId(2L)
+                    .build());
 
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(302L)
-                .orderId(6002L)
-                .price(15_050L)
-                .stopPrice(15_300L)
-                .size(1L) // order size is 10 lots
-                .action(OrderAction.ASK)
-                .orderType(OrderType.STOP_LOSS) // stop_loss
-                .symbol(symbolXbtLtc)
-                .build());
+            future = api.submitCommandAsync(ApiPlaceOrder.builder()
+                    .uid(userId+1)
+                    .orderId(userId+6002L)
+                    .price(15_050L)
+                    .stopPrice(15_300L)
+                    .size(1L) // order size is 10 lots
+                    .action(OrderAction.ASK)
+                    .orderType(OrderType.STOP_LOSS) // stop_loss
+                    .symbol(symbolXbtLtc)
+                    .build());
 
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(302L)
-                .orderId(6001L)
-                .price(14_850L)
-                .stopPrice(15_300L)
-                .size(1L) // order size is 10 lots
-                .action(OrderAction.ASK)
-                .orderType(OrderType.STOP_LOSS) // stop_loss
-                .symbol(symbolXbtLtc)
-                .build());
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(301L)
-                .orderId(5001L)
-                .price(15_070L)
-                .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
-                .size(1L) // order size is 35 lots
-                .action(OrderAction.BID)
-                .orderType(OrderType.GTC) // Good-till-Cancel
-                .symbol(symbolXbtLtc)
-                .build());
-        future = api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(302L)
-                .orderId(6000L)
-                .price(14_950L)
-                .stopPrice(0L)
-                .size(2L) // order size is 10 lots
-                .action(OrderAction.ASK)
-                .orderType(OrderType.GTC) // stop_loss
-                .symbol(symbolXbtLtc)
-                .build());
-        api.submitCommandAsync(ApiPlaceOrder.builder()
-                .uid(301L)
-                .orderId(5002L)
-                .price(15_080L)
-                .reservePrice(15_600L)
-                .size(2L)
-                .action(OrderAction.BID)
-                .orderType(OrderType.GTC) // Good-till-Cancel
-                .symbol(symbolXbtLtc)
-                .build());
+            future = api.submitCommandAsync(ApiPlaceOrder.builder()
+                    .uid(userId+1)
+                    .orderId(userId+6001L)
+                    .price(14_850L)
+                    .stopPrice(15_300L)
+                    .size(1L) // order size is 10 lots
+                    .action(OrderAction.ASK)
+                    .orderType(OrderType.STOP_LOSS) // stop_loss
+                    .symbol(symbolXbtLtc)
+                    .build());
+            future = api.submitCommandAsync(ApiPlaceOrder.builder()
+                    .uid(userId)
+                    .orderId(userId+5001L)
+                    .price(15_070L)
+                    .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
+                    .size(1L) // order size is 35 lots
+                    .action(OrderAction.BID)
+                    .orderType(OrderType.GTC) // Good-till-Cancel
+                    .symbol(symbolXbtLtc)
+                    .build());
+            future = api.submitCommandAsync(ApiPlaceOrder.builder()
+                    .uid(userId+1)
+                    .orderId(userId+6000L)
+                    .price(14_950L)
+                    .stopPrice(0L)
+                    .size(2L) // order size is 10 lots
+                    .action(OrderAction.ASK)
+                    .orderType(OrderType.GTC) // stop_loss
+                    .symbol(symbolXbtLtc)
+                    .build());
+            api.submitCommandAsync(ApiPlaceOrder.builder()
+                    .uid(userId)
+                    .orderId(userId+5002L)
+                    .price(15_080L)
+                    .reservePrice(15_600L)
+                    .size(2L)
+                    .action(OrderAction.BID)
+                    .orderType(OrderType.GTC) // Good-till-Cancel
+                    .symbol(symbolXbtLtc)
+                    .build());
+
+            userId+=2;
+
+        }
+
+
 
         CompletableFuture<L2MarketData> orderBookFuture2 = api.requestOrderBookAsync(symbolXbtLtc, 10);
         System.out.println("ApiOrderBookRequest result: " + orderBookFuture2.get());

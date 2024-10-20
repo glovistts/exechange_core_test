@@ -15,6 +15,9 @@
  */
 package com.exechange_test.core.orderbook;
 
+import com.exechange_test.core.ExchangeApi;
+import com.exechange_test.core.common.api.ApiPlaceOrder;
+import com.exechange_test.core.my.AppConfig;
 import exchange.core2.collections.objpool.ObjectsPool;
 import com.exechange_test.core.common.*;
 import com.exechange_test.core.common.cmd.CommandResultCode;
@@ -31,6 +34,7 @@ import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -41,7 +45,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
     private final Boolean EnableSL = true;
     private final Long roundVal = 50L;
-
+    private final ExchangeApi api;
     @Getter
     private static NavigableMap<Long, OrdersBucketNaive> askBuckets;
     @Getter
@@ -71,7 +75,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
                               final ObjectsPool pool,
                               final OrderBookEventsHelper eventsHelper,
                               final LoggingConfiguration loggingCfg) {
-
+        this.api = AppConfig.getExchangeApi();
         this.symbolSpec = symbolSpec;
         this.askBuckets = new TreeMap<>();
         this.slBuckets=new TreeMap<>();
@@ -84,7 +88,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
     public OrderBookNaiveImpl(final CoreSymbolSpecification symbolSpec,
                               final LoggingConfiguration loggingCfg) {
-
+        this.api = AppConfig.getExchangeApi();
         this.symbolSpec = symbolSpec;
         this.askBuckets = new TreeMap<>();
         this.bidBuckets = new TreeMap<>(Collections.reverseOrder());
@@ -94,6 +98,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
     }
 
     public OrderBookNaiveImpl(final BytesIn bytes, final LoggingConfiguration loggingCfg) {
+        this.api = AppConfig.getExchangeApi();
         this.symbolSpec = new CoreSymbolSpecification(bytes);
         this.askBuckets = SerializationUtils.readLongMap(bytes, TreeMap::new, OrdersBucketNaive::new);
         this.slBuckets = SerializationUtils.readLongMap(bytes, TreeMap::new, OrdersBucketNaive::new);
@@ -139,26 +144,31 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final long stopPrice = cmd.stopPrice;
         final int symbol=cmd.symbol;
         final long orderId=cmd.orderId;
-        final OrderType orderType=cmd.orderType;
+        OrderType orderTypeSL=cmd.orderType;
 
-
-        final Order orderRecord = new Order(
-                orderId,
-                price,
-                symbol,
-                size,
-                0L,
-                cmd.reserveBidPrice,
-                stopPrice,
-                action,
-                orderType,
-                cmd.uid,
-                cmd.timestamp);
+        if(shouldActivateStopLoss(cmd.stopPrice,getCurrentPrice(cmd.symbol))) { orderTypeSL=OrderType.GTC;}
+            final Order orderRecord = new Order(
+                    orderId,
+                    price,
+                    symbol,
+                    size,
+                    0L,
+                    cmd.reserveBidPrice,
+                    stopPrice,
+                    action,
+                    orderTypeSL,
+                    cmd.uid,
+                    cmd.timestamp);
 
         getBucketsByOrderType(order).computeIfAbsent(price, p -> new OrdersBucketNaive(p, stopPrice)).put(orderRecord);
 
     }
-
+    private long getCurrentPrice(int symbol) {
+        return Optional.ofNullable(MatcherTradeEvent.getSymbolPriceMap().get(symbol)).orElse(0L);
+    }
+    private boolean shouldActivateStopLoss(long stopPrice, long currentPrice) {
+        return stopPrice > currentPrice && currentPrice != 0;
+    }
 
     private void newOrderPlaceGtc(final OrderCommand cmd) {
 
@@ -274,49 +284,33 @@ public final class OrderBookNaiveImpl implements IOrderBook {
             return filled;
         }
         final long orderSize = activeOrder.getSize();
-
         MatcherTradeEvent eventsTail = null;
-
         List<Long> emptyBuckets = new ArrayList<>();
         for (final OrdersBucketNaive bucket : matchingBuckets.values()) {
                final long sizeLeft = orderSize - filled;
-
                 final OrdersBucketNaive.MatcherResult bucketMatchings = bucket.match(sizeLeft, activeOrder, eventsHelper);
-
                 bucketMatchings.ordersToRemove.forEach(idMap::remove);
-
                 filled += bucketMatchings.volume;
-
-                // attach chain received from bucket matcher
                 if (eventsTail == null) {
                     triggerCmd.matcherEvent = bucketMatchings.eventsChainHead;
                 } else {
                     eventsTail.nextEvent = bucketMatchings.eventsChainHead;
                 }
                 eventsTail = bucketMatchings.eventsChainTail;
-
                 long price = bucket.getPrice();
-
                 if (bucket.getTotalVolume() == 0) {
                     emptyBuckets.add(price);
                 }
-
                 if (filled == orderSize) {
-                    // enough matched
                     break;
                 }
-//            }
         }
 
-        // remove empty buckets (is it necessary?)
         // TODO can remove through iterator ??
         emptyBuckets.forEach(matchingBuckets::remove);
-
-//        log.debug("emptyBuckets: {}", emptyBuckets);
-//        log.debug("matchingRecords: {}", matchingRecords);
-
         return filled;
     }
+
 
     public static long roundUp(long actualValue, long nextRoundedValue) {
         long roundedUpValue = actualValue;

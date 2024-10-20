@@ -22,8 +22,8 @@ public class ThreadTest {
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     public void sampleTestWithThread() throws Exception {
-        StopLossCheckThread stopLossThread = new StopLossCheckThread();
-        stopLossThread.start();
+//        StopLossCheckThread stopLossThread = new StopLossCheckThread();
+//        stopLossThread.start();
         ExchangeApi api = AppConfig.getExchangeApi();
         final int currencyCodeXbt = 11;
         final int currencyCodeLtc = 15;
@@ -113,7 +113,7 @@ public class ThreadTest {
 
         CompletableFuture<L2MarketData> orderBookFuture = api.requestOrderBookAsync(symbolXbtLtc, 10);
         long[] expectedBidVolumes = {1L};
-        long[] expectedBidPrices = {15050};
+        long[] expectedBidPrices = {14850};
         int expectedBidSize = 1;
         L2MarketData orderBook = null;
         try {

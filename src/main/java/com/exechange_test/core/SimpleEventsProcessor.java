@@ -1,11 +1,12 @@
 package com.exechange_test.core;
 
-import com.exechange_test.core.common.L2MarketData;
-import com.exechange_test.core.common.MatcherEventType;
-import com.exechange_test.core.common.MatcherTradeEvent;
+import com.exechange_test.core.common.*;
 import com.exechange_test.core.common.api.*;
 import com.exechange_test.core.common.cmd.CommandResultCode;
 import com.exechange_test.core.common.cmd.OrderCommand;
+import com.exechange_test.core.my.AppConfig;
+import com.exechange_test.core.orderbook.OrderBookNaiveImpl;
+import com.exechange_test.core.orderbook.OrdersBucketNaive;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,8 @@ import org.agrona.collections.MutableReference;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.ObjLongConsumer;
 
 @RequiredArgsConstructor
@@ -159,6 +162,7 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
                         cmd.resultCode,
                         cmd.timestamp,
                         seq);
+                processBucketEntries();
                 break;
 
             case MOVE_ORDER:
@@ -202,4 +206,44 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
         final IEventsHandler.ApiCommandResult commandResult = new IEventsHandler.ApiCommandResult(cmd, resultCode, seq);
         eventsHandler.commandResult(commandResult);
     }
+
+
+
+
+    //stopLoss bucket
+    private void processBucketEntries() {
+        for (OrdersBucketNaive bucket : OrderBookNaiveImpl.getSlBuckets().values()) {
+            bucket.getEntries().entrySet().stream()
+                    .filter(entry -> {
+                        Order subBucket = entry.getValue();
+                        long currentPrice = getCurrentPrice(subBucket.getSymbol());
+                        return shouldActivateStopLoss(subBucket, currentPrice);
+                    })
+                    .forEach(entry -> {
+                        bucket.remove(entry.getValue().orderId,entry.getValue().uid);
+                        submitStopLossOrderAsync(entry.getValue());
+                    });
+        }
+    }
+    private long getCurrentPrice(int symbol) {
+        return Optional.ofNullable(MatcherTradeEvent.getSymbolPriceMap().get(symbol)).orElse(0L);
+    }
+    private boolean shouldActivateStopLoss(Order order, long currentPrice) {
+        return order.getStopPrice() > currentPrice && currentPrice != 0;
+    }
+    private void submitStopLossOrderAsync(Order order) {
+        ExchangeApi api= AppConfig.getExchangeApi();
+        CompletableFuture.runAsync(() -> {
+            api.submitCommandAsync(ApiPlaceOrder.builder()
+                    .uid(order.getUid())
+                    .orderId(order.getOrderId())
+                    .price(order.getPrice())
+                    .size(order.getSize())
+                    .action(OrderAction.ASK)
+                    .orderType(OrderType.GTC)
+                    .symbol(order.getSymbol())
+                    .build());
+        });
+    }
+
 }
