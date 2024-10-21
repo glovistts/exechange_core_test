@@ -207,10 +207,6 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
         eventsHandler.commandResult(commandResult);
     }
 
-
-
-
-    //stopLoss bucket
     private void processBucketEntries() {
         for (OrdersBucketNaive bucket : OrderBookNaiveImpl.getSlBuckets().values()) {
             bucket.getEntries().entrySet().stream()

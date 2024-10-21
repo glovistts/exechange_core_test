@@ -146,7 +146,7 @@ public final class OrderBookNaiveImpl implements IOrderBook {
         final long orderId=cmd.orderId;
         OrderType orderTypeSL=cmd.orderType;
 
-        if(shouldActivateStopLoss(cmd.stopPrice,getCurrentPrice(cmd.symbol))) { orderTypeSL=OrderType.GTC;}
+//        if(shouldActivateStopLoss(cmd.stopPrice,getCurrentPrice(cmd.symbol))) { orderTypeSL=OrderType.GTC;}
             final Order orderRecord = new Order(
                     orderId,
                     price,
