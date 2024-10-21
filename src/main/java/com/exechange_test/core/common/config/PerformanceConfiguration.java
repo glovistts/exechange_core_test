@@ -118,7 +118,7 @@ public final class PerformanceConfiguration {
     public static PerformanceConfiguration.PerformanceConfigurationBuilder baseBuilder() {
 
         return builder()
-                .ringBufferSize(16 * 1024)
+                .ringBufferSize(64 * 1024)
                 .matchingEnginesNum(1)
                 .riskEnginesNum(1)
                 .msgsInGroupLimit(256)
@@ -127,7 +127,7 @@ public final class PerformanceConfiguration {
                 .l2RefreshDepth(8)
                 .stopLossThreadBatchSize(500L)
                 .threadFactory(Thread::new)
-                .waitStrategy(CoreWaitStrategy.BLOCKING)
+                .waitStrategy(CoreWaitStrategy.BUSY_SPIN)
                 .binaryCommandsLz4CompressorFactory(() -> LZ4Factory.fastestInstance().highCompressor())
                 .orderBookFactory(OrderBookNaiveImpl::new);
     }

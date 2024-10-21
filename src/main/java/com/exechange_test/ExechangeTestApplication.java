@@ -50,8 +50,8 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .build();
         future = api.submitBinaryDataAsync(new BatchAddSymbolsCommand(symbolSpecXbtLtc));
         long userId=1;
-        long mid=10;
-        ExecutorService executorService = Executors.newFixedThreadPool(500); // You can adjust the pool size as needed
+        long mid=50000;
+        ExecutorService executorService = Executors.newFixedThreadPool(1000); // You can adjust the pool size as needed
         while(userId < mid){
             long finalUserId = userId;
             api.submitCommandAsync(ApiAddUser.builder()
@@ -83,7 +83,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
 
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId + 1)
-                    .orderId(finalUserId*10000+finalUserId + 6002L)
+                    .orderId(finalUserId*100000+finalUserId + 6002L)
                     .price(15_050L)
                     .stopPrice(15_300L)
                     .size(1L) // order size is 10 lots
@@ -94,7 +94,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
 
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId + 1)
-                    .orderId(finalUserId*10000+finalUserId + 6001L)
+                    .orderId(finalUserId*100000+finalUserId + 6001L)
                     .price(14_850L)
                     .stopPrice(15_300L)
                     .size(1L) // order size is 10 lots
@@ -105,7 +105,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
 
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId)
-                    .orderId(finalUserId*10000+finalUserId + 5001L)
+                    .orderId(finalUserId*100000+finalUserId + 5001L)
                     .price(15_070L)
                     .reservePrice(15_600L) // can move bid order up to the 1.56 LTC, without replacing it
                     .size(1L) // order size is 35 lots
@@ -116,7 +116,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
 
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId + 1)
-                    .orderId(finalUserId*10000+finalUserId + 6000L)
+                    .orderId(finalUserId*100000+finalUserId + 6000L)
                     .price(14_950L)
                     .stopPrice(0L)
                     .size(2L) // order size is 10 lots
@@ -127,7 +127,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
 
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId)
-                    .orderId(finalUserId*10000+finalUserId + 5002L)
+                    .orderId(finalUserId*100000+finalUserId + 5002L)
                     .price(15_080L)
                     .reservePrice(15_600L)
                     .size(2L)
