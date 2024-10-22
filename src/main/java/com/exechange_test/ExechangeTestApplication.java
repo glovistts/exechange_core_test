@@ -31,8 +31,8 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        StopLossCheckThread stopLossThread = new StopLossCheckThread();
-//        stopLossThread.start();
+        StopLossCheckThread stopLossThread = new StopLossCheckThread();
+        stopLossThread.start();
         ExchangeApi api = AppConfig.getExchangeApi();
         final int currencyCodeXbt = 11;
         final int currencyCodeLtc = 15;
@@ -50,7 +50,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
                 .build();
         future = api.submitBinaryDataAsync(new BatchAddSymbolsCommand(symbolSpecXbtLtc));
         long userId=1;
-        long mid=50000;
+        long mid=80_000L;
         ExecutorService executorService = Executors.newFixedThreadPool(1000); // You can adjust the pool size as needed
         while(userId < mid){
             long finalUserId = userId;
@@ -84,8 +84,8 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId + 1)
                     .orderId(finalUserId*100000+finalUserId + 6002L)
-                    .price(15_050L)
-                    .stopPrice(15_300L)
+                    .price(13_150L)
+                    .stopPrice(13_300L)
                     .size(1L) // order size is 10 lots
                     .action(OrderAction.ASK)
                     .orderType(OrderType.STOP_LOSS) // stop_loss
@@ -95,8 +95,8 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId + 1)
                     .orderId(finalUserId*100000+finalUserId + 6001L)
-                    .price(14_850L)
-                    .stopPrice(15_300L)
+                    .price(13_150L)
+                    .stopPrice(13_300L)
                     .size(1L) // order size is 10 lots
                     .action(OrderAction.ASK)
                     .orderType(OrderType.STOP_LOSS) // stop_loss
@@ -128,7 +128,7 @@ public abstract class ExechangeTestApplication  implements CommandLineRunner {
             executorService.submit(() -> api.submitCommandAsync(ApiPlaceOrder.builder()
                     .uid(finalUserId)
                     .orderId(finalUserId*100000+finalUserId + 5002L)
-                    .price(15_080L)
+                    .price(13_280L)
                     .reservePrice(15_600L)
                     .size(2L)
                     .action(OrderAction.BID)

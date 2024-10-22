@@ -162,7 +162,7 @@ public class SimpleEventsProcessor implements ObjLongConsumer<OrderCommand> {
                         cmd.resultCode,
                         cmd.timestamp,
                         seq);
-                processBucketEntries();
+//                processBucketEntries();
                 break;
 
             case MOVE_ORDER:

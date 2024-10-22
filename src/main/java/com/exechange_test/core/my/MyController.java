@@ -1,6 +1,7 @@
 package com.exechange_test.core.my;
 
 import com.exechange_test.core.ExchangeApi;
+import com.exechange_test.core.common.MatcherTradeEvent;
 import com.exechange_test.core.common.OrderAction;
 import com.exechange_test.core.common.OrderType;
 import com.exechange_test.core.common.api.ApiPlaceOrder;
@@ -37,6 +38,7 @@ public class MyController {
             }
 
             Future future = api.submitCommandAsync(builder.build());
+            System.out.println(MatcherTradeEvent.getSymbolPriceMap().get(241));
             return ResponseEntity.ok("Order placed successfully!");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to place order: " + e.getMessage());
