@@ -330,14 +330,17 @@ public final class OrderBookNaiveImpl implements IOrderBook {
 
         final Order order = idMap.get(orderId);
         if (order == null || order.uid != cmd.uid) {
-            // order already matched and removed from order book previously
             return CommandResultCode.MATCHING_UNKNOWN_ORDER_ID;
         }
 
         // now can remove it
         idMap.remove(orderId);
-
-        final NavigableMap<Long, OrdersBucketNaive> buckets = getBucketsByAction(order.action);
+        final NavigableMap<Long, OrdersBucketNaive> buckets;
+        if(order.orderType==OrderType.STOP_LOSS) {
+            buckets = getBucketsByOrderType(order.orderType);
+        }else{
+            buckets = getBucketsByAction(order.action);
+        }
         final long price = order.price;
         final OrdersBucketNaive ordersBucket = buckets.get(price);
         if (ordersBucket == null) {
